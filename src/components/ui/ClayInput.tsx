@@ -35,7 +35,8 @@ export const ClayInput = forwardRef<HTMLInputElement, ClayInputProps>(
           <input
             ref={ref}
             id={inputId}
-            className={cn('littera-input', icon && 'pl-10', className)}
+            className={cn('littera-input', className)}
+            style={icon ? { paddingLeft: '2.5rem' } : undefined}
             {...props}
           />
         </div>

@@ -9,6 +9,53 @@ import { ClayInput } from '@/components/ui/ClayInput'
 
 type Mode = 'password' | 'magic' | 'signup'
 
+function PasswordField({
+  label,
+  value,
+  onChange,
+  show,
+  onToggleShow,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  show: boolean
+  onToggleShow: () => void
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-sm font-semibold ml-0.5" style={{ color: 'var(--littera-ink)' }}>
+        {label}
+      </label>
+      <div className="relative">
+        <span
+          className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+          style={{ color: 'var(--littera-slate)' }}
+        >
+          <Lock className="w-4 h-4" />
+        </span>
+        <input
+          type={show ? 'text' : 'password'}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="••••••••"
+          required
+          className="littera-input pr-10"
+          style={{ paddingLeft: '2.5rem' }}
+        />
+        <button
+          type="button"
+          onClick={onToggleShow}
+          className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+          style={{ color: 'var(--littera-slate)' }}
+        >
+          {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function LoginForm() {
   const [mode, setMode] = useState<Mode>('password')
   const [email, setEmail] = useState('')
@@ -88,52 +135,6 @@ export function LoginForm() {
     } else {
       setSent(true)
     }
-  }
-
-  function PasswordField({
-    label,
-    value,
-    onChange,
-    show,
-    onToggleShow,
-  }: {
-    label: string
-    value: string
-    onChange: (v: string) => void
-    show: boolean
-    onToggleShow: () => void
-  }) {
-    return (
-      <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-semibold ml-0.5" style={{ color: 'var(--littera-ink)' }}>
-          {label}
-        </label>
-        <div className="relative">
-          <span
-            className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-            style={{ color: 'var(--littera-slate)' }}
-          >
-            <Lock className="w-4 h-4" />
-          </span>
-          <input
-            type={show ? 'text' : 'password'}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder="••••••••"
-            required
-            className="littera-input pl-10 pr-10"
-          />
-          <button
-            type="button"
-            onClick={onToggleShow}
-            className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-            style={{ color: 'var(--littera-slate)' }}
-          >
-            {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-          </button>
-        </div>
-      </div>
-    )
   }
 
   if (sent) {
