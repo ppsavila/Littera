@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm show:*)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --app --src-dir --import-alias \"@/*\" --no-git --yes)",
+      "Bash(npx create-next-app@latest revire-app --typescript --tailwind --app --src-dir --import-alias \"@/*\" --no-git --yes)",
+      "Bash(cp -r revire-app/. .)",
+      "Bash(rm -rf revire-app)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(node -e \":*)",
+      "Bash(node scripts/extract-refs.mjs)",
+      "Bash(node -e \"const x = require\\(''pdf-parse''\\); console.log\\(typeof x, typeof x.default\\)\")",
+      "Bash(node -e \"const x = require\\(''pdfjs-dist''\\); console.log\\(Object.keys\\(x\\).slice\\(0,5\\)\\)\")",
+      "Bash(node scripts/build-rubric.mjs)",
+      "Bash(grep -n \"export async function GET\" /e/repos/Revire/src/app/api/essays/[id]/route.ts)",
+      "Bash(node -e \"const r = require\\(''./node_modules/react/package.json''\\); console.log\\(r.version\\)\")",
+      "Bash(npx supabase:*)"
+    ]
+  }
+}
