@@ -16,7 +16,8 @@
       "Bash(node scripts/build-rubric.mjs)",
       "Bash(grep -n \"export async function GET\" /e/repos/Revire/src/app/api/essays/[id]/route.ts)",
       "Bash(node -e \"const r = require\\(''./node_modules/react/package.json''\\); console.log\\(r.version\\)\")",
-      "Bash(npx supabase:*)"
+      "Bash(npx supabase:*)",
+      "Bash(ls e:/repos/Littera/.env*)"
     ]
   }
 }
