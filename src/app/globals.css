@@ -1,26 +1,268 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════════
+   LITTERA DESIGN SYSTEM
+   Warm Academic · Editorial Premium · Mobile-first
+   ═══════════════════════════════════════════════════════════════ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ── Core palette ─────────────────────────────────────────── */
+  --littera-ink:           #1C1917;
+  --littera-parchment:     #FDFAF5;
+  --littera-paper:         #FFFFFF;
+
+  --littera-forest:        #1A4D3A;
+  --littera-forest-mid:    #2D6B52;
+  --littera-forest-light:  #E8F4EE;
+  --littera-forest-faint:  #F2FAF6;
+  --littera-moss:          #4A7C59;
+
+  --littera-gold:          #C9860A;
+  --littera-gold-mid:      #E09B20;
+  --littera-gold-light:    #FEF3DC;
+  --littera-gold-faint:    #FFFBF0;
+
+  --littera-slate:         #64748B;
+  --littera-dust:          #E8E4DC;
+  --littera-mist:          #F5F2EC;
+
+  /* ── Status colors ────────────────────────────────────────── */
+  --littera-amber:         #B45309;
+  --littera-amber-light:   #FEF3C7;
+  --littera-sky:           #0369A1;
+  --littera-sky-light:     #E0F2FE;
+  --littera-teal:          #0F766E;
+  --littera-teal-light:    #CCFBF1;
+  --littera-rose:          #BE123C;
+  --littera-rose-light:    #FFE4E6;
+  --littera-sage:          #3F6212;
+  --littera-sage-light:    #ECFCCB;
+
+  /* ── Shadows ──────────────────────────────────────────────── */
+  --littera-shadow-xs:  0 1px 2px rgba(28,25,23,0.06);
+  --littera-shadow-sm:  0 1px 4px rgba(28,25,23,0.08), 0 1px 2px rgba(28,25,23,0.04);
+  --littera-shadow:     0 2px 10px rgba(28,25,23,0.08), 0 1px 4px rgba(28,25,23,0.05);
+  --littera-shadow-md:  0 4px 20px rgba(28,25,23,0.10), 0 2px 6px rgba(28,25,23,0.05);
+  --littera-shadow-lg:  0 8px 40px rgba(28,25,23,0.12), 0 4px 12px rgba(28,25,23,0.06);
+
+
+  --background: var(--littera-parchment);
+  --foreground: var(--littera-ink);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ─── Base ───────────────────────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background-color: var(--littera-parchment);
+  color: var(--littera-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Display / serif font class */
+.font-display {
+  font-family: var(--font-display), 'Georgia', 'Times New Roman', serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ─── Littera Cards ───────────────────────────────────────────── */
+
+.littera-card {
+  background: var(--littera-paper);
+  border-radius: 12px;
+  border: 1px solid var(--littera-dust);
+  box-shadow: var(--littera-shadow);
 }
+
+.littera-card-warm {
+  background: var(--littera-parchment);
+  border-radius: 12px;
+  border: 1px solid var(--littera-dust);
+  box-shadow: var(--littera-shadow);
+}
+
+.littera-card-forest {
+  background: var(--littera-forest-faint);
+  border-radius: 12px;
+  border: 1px solid rgba(26,77,58,0.18);
+  box-shadow: var(--littera-shadow-sm);
+}
+
+/* ─── Littera Buttons ─────────────────────────────────────────── */
+
+.littera-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.25;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease,
+              box-shadow 0.18s ease, transform 0.12s ease, color 0.18s ease;
+  user-select: none;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.littera-btn:hover:not(:disabled) { transform: translateY(-1px); }
+.littera-btn:active:not(:disabled) { transform: translateY(0.5px); }
+.littera-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.littera-btn-primary {
+  background: var(--littera-forest);
+  border-color: var(--littera-forest-mid);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(26,77,58,0.30), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.littera-btn-primary:hover:not(:disabled) {
+  background: var(--littera-moss);
+  box-shadow: 0 3px 10px rgba(26,77,58,0.28);
+}
+
+.littera-btn-gold {
+  background: var(--littera-gold);
+  border-color: var(--littera-gold-mid);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(201,134,10,0.30), inset 0 1px 0 rgba(255,255,255,0.10);
+}
+.littera-btn-gold:hover:not(:disabled) {
+  background: var(--littera-gold-mid);
+  box-shadow: 0 3px 10px rgba(201,134,10,0.25);
+}
+
+.littera-btn-outline {
+  background: var(--littera-paper);
+  border-color: var(--littera-dust);
+  color: var(--littera-ink);
+  box-shadow: var(--littera-shadow-xs);
+}
+.littera-btn-outline:hover:not(:disabled) {
+  border-color: var(--littera-forest);
+  color: var(--littera-forest);
+  background: var(--littera-forest-faint);
+  box-shadow: var(--littera-shadow-sm);
+}
+
+.littera-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--littera-slate);
+  box-shadow: none;
+}
+.littera-btn-ghost:hover:not(:disabled) {
+  background: var(--littera-mist);
+  color: var(--littera-ink);
+}
+
+
+/* ─── Littera Inputs ──────────────────────────────────────────── */
+
+.littera-input {
+  width: 100%;
+  background: var(--littera-paper);
+  border-radius: 8px;
+  border: 1.5px solid var(--littera-dust);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--littera-ink);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+.littera-input:focus {
+  border-color: var(--littera-forest);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.03), 0 0 0 3px rgba(26,77,58,0.12);
+}
+.littera-input::placeholder { color: var(--littera-slate); }
+
+
+/* ─── Littera Badges ──────────────────────────────────────────── */
+
+.littera-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.175rem 0.55rem;
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border: 1px solid transparent;
+}
+
+
+/* ─── Dividers ────────────────────────────────────────────────── */
+
+.littera-rule {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--littera-dust) 20%,
+    var(--littera-dust) 80%,
+    transparent
+  );
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────────── */
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--littera-dust); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--littera-slate); }
+
+/* ─── Animations ──────────────────────────────────────────────── */
+
+@keyframes littera-fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes littera-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes littera-scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes littera-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.littera-fade-up  { animation: littera-fade-up  0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.littera-fade-in  { animation: littera-fade-in  0.4s ease both; }
+.littera-scale-in { animation: littera-scale-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+.littera-skeleton {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--littera-dust) 25%,
+    var(--littera-mist) 50%,
+    var(--littera-dust) 75%
+  );
+  background-size: 200% 100%;
+  animation: littera-shimmer 1.4s ease-in-out infinite;
+}
+
+/* Stagger helpers */
+.delay-50  { animation-delay: 50ms; }
+.delay-100 { animation-delay: 100ms; }
+.delay-150 { animation-delay: 150ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
