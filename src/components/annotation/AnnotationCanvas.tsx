@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Stage, Layer, Line, Rect, Arrow, Text, Circle } from 'react-konva'
 import { useAnnotationStore } from '@/stores/annotationStore'
-import { useErrorMarkerStore } from '@/stores/errorMarkerStore'
 import { createClient } from '@/lib/supabase/client'
 import { CommentPopover } from './CommentPopover'
 import type Konva from 'konva'
@@ -59,7 +58,6 @@ export function AnnotationCanvas({
     y: number
   } | null>(null)
 
-  const { isErrorMode } = useErrorMarkerStore()
   const supabase = createClient()
   const pageAnnotations = annotations[pageNumber] ?? []
 
@@ -388,7 +386,7 @@ export function AnnotationCanvas({
   return (
     <div
       className="absolute inset-0"
-      style={{ cursor: cursorStyle, pointerEvents: isErrorMode ? 'none' : 'auto' }}
+      style={{ cursor: cursorStyle }}
     >
       <Stage
         width={width}

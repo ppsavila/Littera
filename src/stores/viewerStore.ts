@@ -6,12 +6,14 @@ interface ViewerState {
   totalPages: number
   isLoading: boolean
   pageDimensions: Record<number, { width: number; height: number }>
+  pageCanvases: Record<number, HTMLCanvasElement>
 
   setZoom: (zoom: number) => void
   setCurrentPage: (page: number) => void
   setTotalPages: (total: number) => void
   setIsLoading: (v: boolean) => void
   setPageDimensions: (page: number, dims: { width: number; height: number }) => void
+  setPageCanvas: (page: number, canvas: HTMLCanvasElement) => void
   zoomIn: () => void
   zoomOut: () => void
   resetZoom: () => void
@@ -27,6 +29,7 @@ export const useViewerStore = create<ViewerState>((set, get) => ({
   totalPages: 1,
   isLoading: true,
   pageDimensions: {},
+  pageCanvases: {},
 
   setZoom: (zoom) => set({ zoom: Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom)) }),
   setCurrentPage: (currentPage) => set({ currentPage }),
@@ -36,6 +39,11 @@ export const useViewerStore = create<ViewerState>((set, get) => ({
   setPageDimensions: (page, dims) =>
     set((state) => ({
       pageDimensions: { ...state.pageDimensions, [page]: dims },
+    })),
+
+  setPageCanvas: (page, canvas) =>
+    set((state) => ({
+      pageCanvases: { ...state.pageCanvases, [page]: canvas },
     })),
 
   zoomIn: () => {
