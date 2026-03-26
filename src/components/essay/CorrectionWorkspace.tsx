@@ -10,6 +10,7 @@ import { ErrorMarkerToolbar } from '@/components/annotation/ErrorMarkerToolbar'
 import { ScoringPanel } from '@/components/scoring/ScoringPanel'
 import { AnnotationSidebar } from '@/components/annotation/AnnotationSidebar'
 import { WorkspaceHeader } from './WorkspaceHeader'
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour'
 import { FileText, BarChart2 } from 'lucide-react'
 import type { Essay } from '@/types/essay'
 import type { Annotation } from '@/types/annotation'
@@ -88,6 +89,7 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-full">
+      <OnboardingTour />
       {/* Top bar */}
       <WorkspaceHeader
         essay={essay}

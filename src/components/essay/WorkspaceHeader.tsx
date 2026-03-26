@@ -91,6 +91,7 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
       <div className="flex items-center gap-2 flex-shrink-0">
         {/* Annotations toggle */}
         <button
+          data-tour="annotations-btn"
           onClick={onToggleAnnotations}
           className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
           style={
@@ -105,6 +106,7 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
 
         {/* Scoring toggle */}
         <button
+          data-tour="scoring-btn"
           onClick={onToggleScoring}
           className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
           style={
@@ -118,10 +120,13 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
         </button>
 
         {/* Export PDF */}
-        <ExportPDFButton essay={essay} />
+        <div data-tour="export-btn">
+          <ExportPDFButton essay={essay} />
+        </div>
 
         {/* Save */}
         <button
+          data-tour="save-btn"
           onClick={handleSave}
           disabled={saving || !isDirty}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"

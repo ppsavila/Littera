@@ -53,6 +53,7 @@ export function AnnotationToolbar() {
 
   return (
     <div
+      data-tour="annotation-tools"
       className="hidden sm:flex flex-col overflow-y-auto max-h-full flex-shrink-0"
       style={{
         background: 'var(--littera-paper)',
@@ -91,6 +92,7 @@ export function AnnotationToolbar() {
 
         {/* Error mode toggle */}
         <button
+          data-tour="error-mode"
           onClick={handleToggleErrorMode}
           title="Marcar erros"
           className="w-8 h-8 flex items-center justify-center rounded-lg transition-all"
