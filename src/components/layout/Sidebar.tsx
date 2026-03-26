@@ -2,78 +2,84 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { FileText, Users, LayoutDashboard } from 'lucide-react'
+import { FileText, Users, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState } from 'react'
 
 const navItems = [
-  { href: '/essays',   label: 'Redações',  icon: FileText        },
-  { href: '/students', label: 'Alunos',    icon: Users           },
+  { href: '/essays',   label: 'Redações',  icon: FileText },
+  { href: '/students', label: 'Alunos',    icon: Users    },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
+  const [collapsed, setCollapsed] = useState(true)
 
   return (
     <aside
-      className="hidden md:flex w-[220px] flex-col flex-shrink-0 h-full"
+      className="hidden md:flex flex-col flex-shrink-0 h-full transition-all duration-200"
       style={{
+        width: collapsed ? 48 : 220,
         background: 'var(--littera-paper)',
         borderRight: '1px solid var(--littera-dust)',
+        overflow: 'hidden',
       }}
     >
-      {/* Logo */}
+      {/* Logo / toggle row */}
       <div
-        className="flex items-center gap-3 px-5 py-5"
-        style={{ borderBottom: '1px solid var(--littera-dust)' }}
+        className="flex items-center flex-shrink-0"
+        style={{
+          borderBottom: '1px solid var(--littera-dust)',
+          height: 52,
+          padding: collapsed ? '0 8px' : '0 12px 0 20px',
+          justifyContent: collapsed ? 'center' : 'space-between',
+        }}
       >
-        <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center font-display font-bold text-base flex-shrink-0"
-          style={{
-            background: 'var(--littera-forest)',
-            color: '#fff',
-          }}
+        {!collapsed && (
+          <div className="flex items-center gap-3 min-w-0">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center font-display font-bold text-base flex-shrink-0"
+              style={{ background: 'var(--littera-forest)', color: '#fff' }}
+            >
+              L
+            </div>
+            <span
+              className="font-display text-lg font-semibold whitespace-nowrap"
+              style={{ color: 'var(--littera-ink)' }}
+            >
+              Littera
+            </span>
+          </div>
+        )}
+        <button
+          onClick={() => setCollapsed((v) => !v)}
+          className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors flex-shrink-0"
+          style={{ color: 'var(--littera-slate)' }}
+          title={collapsed ? 'Expandir menu' : 'Recolher menu'}
         >
-          L
-        </div>
-        <span
-          className="font-display text-lg font-semibold"
-          style={{ color: 'var(--littera-ink)' }}
-        >
-          Littera
-        </span>
-      </div>
-
-      {/* Section label */}
-      <div className="px-5 pt-5 pb-2">
-        <p
-          className="text-xs font-semibold uppercase tracking-widest"
-          style={{ color: 'var(--littera-slate)', letterSpacing: '0.1em' }}
-        >
-          Menu
-        </p>
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 space-y-0.5">
+      <nav className="flex-1 px-1.5 pt-2 space-y-0.5">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = pathname.startsWith(href)
           return (
             <Link
               key={href}
               href={href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all relative group"
-              style={
-                active
-                  ? {
-                      background: 'var(--littera-forest-light)',
-                      color: 'var(--littera-forest)',
-                    }
-                  : {
-                      color: 'var(--littera-slate)',
-                    }
-              }
+              title={collapsed ? label : undefined}
+              className="flex items-center rounded-lg text-sm font-medium transition-all relative group"
+              style={{
+                gap: collapsed ? 0 : 12,
+                padding: collapsed ? '10px 0' : '10px 12px',
+                justifyContent: collapsed ? 'center' : 'flex-start',
+                ...(active
+                  ? { background: 'var(--littera-forest-light)', color: 'var(--littera-forest)' }
+                  : { color: 'var(--littera-slate)' }),
+              }}
             >
-              {/* Active indicator */}
-              {active && (
+              {active && !collapsed && (
                 <span
                   className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full"
                   style={{ background: 'var(--littera-forest)' }}
@@ -83,21 +89,23 @@ export function Sidebar() {
                 className="w-4 h-4 flex-shrink-0"
                 style={{ strokeWidth: active ? 2.5 : 1.75 }}
               />
-              {label}
+              {!collapsed && label}
             </Link>
           )
         })}
       </nav>
 
       {/* Footer */}
-      <div
-        className="px-5 py-4"
-        style={{ borderTop: '1px solid var(--littera-dust)' }}
-      >
-        <p className="text-xs" style={{ color: 'var(--littera-slate)' }}>
-          Littera · v0.1
-        </p>
-      </div>
+      {!collapsed && (
+        <div
+          className="px-5 py-4 flex-shrink-0"
+          style={{ borderTop: '1px solid var(--littera-dust)' }}
+        >
+          <p className="text-xs" style={{ color: 'var(--littera-slate)' }}>
+            Littera · v0.1
+          </p>
+        </div>
+      )}
     </aside>
   )
 }

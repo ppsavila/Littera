@@ -28,6 +28,7 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
   const { initFromEssay } = useScoringStore()
   const { setMarkers } = useErrorMarkerStore()
   const [showAnnotationSidebar, setShowAnnotationSidebar] = useState(false)
+  const [showScoringPanel, setShowScoringPanel] = useState(false)
   const [mobileTab, setMobileTab] = useState<MobileTab>('document')
 
   // ── Initialise stores from server-loaded data ──────────────────────────────
@@ -92,6 +93,8 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
         essay={essay}
         onToggleAnnotations={() => setShowAnnotationSidebar((v) => !v)}
         showAnnotations={showAnnotationSidebar}
+        onToggleScoring={() => setShowScoringPanel((v) => !v)}
+        showScoring={showScoringPanel}
       />
 
       {/* Horizontal error marker bar — visible on all screen sizes */}
@@ -113,7 +116,7 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
         {/* Right: annotation sidebar + scoring panel */}
         <div className="flex flex-shrink-0">
           {showAnnotationSidebar && <AnnotationSidebar essayId={essay.id} />}
-          <ScoringPanel essay={essay} />
+          {showScoringPanel && <ScoringPanel essay={essay} />}
         </div>
       </div>
 

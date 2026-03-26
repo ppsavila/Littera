@@ -17,7 +17,7 @@ export function PDFRenderer({ essay }: Props) {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [pages, setPages] = useState<{ canvas: HTMLCanvasElement; width: number; height: number }[]>([])
   const [loading, setLoading] = useState(true)
-  const { zoom, setZoom, setTotalPages, setPageDimensions, setIsLoading } = useViewerStore()
+  const { zoom, setZoom, setTotalPages, setPageDimensions, setIsLoading, setPageCanvas } = useViewerStore()
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -56,6 +56,7 @@ export function PDFRenderer({ essay }: Props) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (page.render as any)({ canvasContext: ctx, viewport }).promise
         setPageDimensions(i, { width: viewport.width, height: viewport.height })
+        setPageCanvas(i, canvas)
         renderedPages.push({ canvas, width: viewport.width, height: viewport.height })
       }
 
@@ -89,6 +90,7 @@ export function PDFRenderer({ essay }: Props) {
         {pages.map((page, i) => (
           <div
             key={i}
+            data-essay-page={i + 1}
             className="relative shadow-lg"
             style={{ width: page.width * zoom, height: page.height * zoom }}
           >

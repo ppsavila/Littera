@@ -17,7 +17,7 @@ export function ImageRenderer({ essay }: Props) {
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [dims, setDims] = useState<{ width: number; height: number } | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const { zoom, setZoom, setPageDimensions, setTotalPages, setIsLoading } = useViewerStore()
+  const { zoom, setZoom, setPageDimensions, setTotalPages, setIsLoading, setPageCanvas } = useViewerStore()
 
   useEffect(() => {
     async function loadImage() {
@@ -32,11 +32,18 @@ export function ImageRenderer({ essay }: Props) {
   }, [essay.storage_path])
 
   function handleImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
-    const { naturalWidth, naturalHeight } = e.currentTarget
+    const { naturalWidth, naturalHeight, src } = e.currentTarget
     setDims({ width: naturalWidth, height: naturalHeight })
     setPageDimensions(1, { width: naturalWidth, height: naturalHeight })
     setTotalPages(1)
     setIsLoading(false)
+    // Store canvas for export
+    const canvas = document.createElement('canvas')
+    canvas.width = naturalWidth
+    canvas.height = naturalHeight
+    const ctx = canvas.getContext('2d')!
+    ctx.drawImage(e.currentTarget, 0, 0)
+    setPageCanvas(1, canvas)
 
     // Auto-fit to width on mobile
     if (window.innerWidth < 640) {
@@ -58,12 +65,14 @@ export function ImageRenderer({ essay }: Props) {
     <div className="flex flex-col items-center py-4" ref={containerRef}>
       <ZoomControls />
       <div
+        data-essay-page={1}
         className="relative shadow-lg mt-4"
         style={dims ? { width: dims.width * zoom, height: dims.height * zoom } : undefined}
       >
         <img
           src={imageUrl}
           alt="Redação"
+          crossOrigin="anonymous"
           onLoad={handleImageLoad}
           style={{ width: '100%', height: '100%', display: 'block' }}
         />

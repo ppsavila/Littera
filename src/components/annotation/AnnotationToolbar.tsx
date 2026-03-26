@@ -1,6 +1,7 @@
 'use client'
 
 import { useAnnotationStore, ANNOTATION_COLORS_LIST } from '@/stores/annotationStore'
+import { useErrorMarkerStore } from '@/stores/errorMarkerStore'
 import { cn } from '@/lib/utils'
 import {
   MousePointer2,
@@ -12,6 +13,7 @@ import {
   Eraser,
   Minus,
   Plus,
+  AlertTriangle,
 } from 'lucide-react'
 import type { AnnotationTool } from '@/types/annotation'
 
@@ -29,6 +31,25 @@ const TOOLS: { tool: AnnotationTool; label: string; icon: React.ElementType; sho
 export function AnnotationToolbar() {
   const { activeTool, setTool, activeColor, setColor, strokeWidth, setStrokeWidth } =
     useAnnotationStore()
+  const { isErrorMode, setIsErrorMode, setSelectedErrorCode } = useErrorMarkerStore()
+
+  function selectTool(tool: AnnotationTool) {
+    if (isErrorMode) {
+      setIsErrorMode(false)
+      setSelectedErrorCode(null)
+    }
+    setTool(tool)
+  }
+
+  function handleToggleErrorMode() {
+    const next = !isErrorMode
+    setIsErrorMode(next)
+    if (next) {
+      setTool('pan')
+    } else {
+      setSelectedErrorCode(null)
+    }
+  }
 
   return (
     <div
@@ -45,7 +66,7 @@ export function AnnotationToolbar() {
           {TOOLS.map(({ tool, label, icon: Icon, shortcut }) => (
             <button
               key={tool}
-              onClick={() => setTool(tool)}
+              onClick={() => selectTool(tool)}
               title={`${label} (${shortcut})`}
               className="w-8 h-8 flex items-center justify-center rounded-lg transition-all"
               style={
@@ -64,6 +85,23 @@ export function AnnotationToolbar() {
             </button>
           ))}
         </div>
+
+        {/* Divider */}
+        <div className="w-6 h-px" style={{ background: 'var(--littera-dust)' }} />
+
+        {/* Error mode toggle */}
+        <button
+          onClick={handleToggleErrorMode}
+          title="Marcar erros"
+          className="w-8 h-8 flex items-center justify-center rounded-lg transition-all"
+          style={
+            isErrorMode
+              ? { background: 'var(--littera-rose)', color: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }
+              : { color: 'var(--littera-slate)' }
+          }
+        >
+          <AlertTriangle className="w-4 h-4" />
+        </button>
 
         {/* Divider */}
         <div className="w-6 h-px" style={{ background: 'var(--littera-dust)' }} />
@@ -123,11 +161,29 @@ export function AnnotationToolbar() {
 /** Mobile horizontal mini-toolbar */
 export function AnnotationToolbarMobile() {
   const { activeTool, setTool, activeColor, setColor } = useAnnotationStore()
+  const { isErrorMode, setIsErrorMode, setSelectedErrorCode } = useErrorMarkerStore()
 
-  // Show only the most essential tools on mobile
   const mobileTools = TOOLS.filter((t) =>
     ['pan', 'highlight', 'freehand', 'marker', 'eraser'].includes(t.tool)
   )
+
+  function selectTool(tool: AnnotationTool) {
+    if (isErrorMode) {
+      setIsErrorMode(false)
+      setSelectedErrorCode(null)
+    }
+    setTool(tool)
+  }
+
+  function handleToggleErrorMode() {
+    const next = !isErrorMode
+    setIsErrorMode(next)
+    if (next) {
+      setTool('pan')
+    } else {
+      setSelectedErrorCode(null)
+    }
+  }
 
   return (
     <div
@@ -140,7 +196,7 @@ export function AnnotationToolbarMobile() {
       {mobileTools.map(({ tool, label, icon: Icon }) => (
         <button
           key={tool}
-          onClick={() => setTool(tool)}
+          onClick={() => selectTool(tool)}
           title={label}
           className="w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0 transition-all"
           style={
@@ -152,6 +208,23 @@ export function AnnotationToolbarMobile() {
           <Icon className="w-4 h-4" />
         </button>
       ))}
+
+      {/* Divider */}
+      <div className="w-px h-5 flex-shrink-0 mx-1" style={{ background: 'var(--littera-dust)' }} />
+
+      {/* Error mode toggle */}
+      <button
+        onClick={handleToggleErrorMode}
+        title="Marcar erros"
+        className="w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0 transition-all"
+        style={
+          isErrorMode
+            ? { background: 'var(--littera-rose)', color: '#fff' }
+            : { color: 'var(--littera-slate)' }
+        }
+      >
+        <AlertTriangle className="w-4 h-4" />
+      </button>
 
       {/* Divider */}
       <div className="w-px h-5 flex-shrink-0 mx-1" style={{ background: 'var(--littera-dust)' }} />

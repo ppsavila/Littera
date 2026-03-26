@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, List, CheckCircle, Loader2 } from 'lucide-react'
+import { ArrowLeft, List, BarChart2, CheckCircle, Loader2 } from 'lucide-react'
+import { ExportPDFButton } from './ExportPDFButton'
 import { useScoringStore } from '@/stores/scoringStore'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -12,9 +13,11 @@ interface Props {
   essay: Essay
   onToggleAnnotations: () => void
   showAnnotations: boolean
+  onToggleScoring: () => void
+  showScoring: boolean
 }
 
-export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations }: Props) {
+export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, onToggleScoring, showScoring }: Props) {
   const { scores, notes, generalComment, totalScore, markClean, isDirty } = useScoringStore()
   const [saving, setSaving] = useState(false)
   const supabase = createClient()
@@ -92,21 +95,30 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations }:
           className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
           style={
             showAnnotations
-              ? {
-                  background: 'var(--littera-forest-light)',
-                  color: 'var(--littera-forest)',
-                  border: '1px solid rgba(26,77,58,0.25)',
-                }
-              : {
-                  background: 'var(--littera-mist)',
-                  color: 'var(--littera-slate)',
-                  border: '1px solid var(--littera-dust)',
-                }
+              ? { background: 'var(--littera-forest-light)', color: 'var(--littera-forest)', border: '1px solid rgba(26,77,58,0.25)' }
+              : { background: 'var(--littera-mist)', color: 'var(--littera-slate)', border: '1px solid var(--littera-dust)' }
           }
         >
           <List className="w-3.5 h-3.5" />
           Anotações
         </button>
+
+        {/* Scoring toggle */}
+        <button
+          onClick={onToggleScoring}
+          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
+          style={
+            showScoring
+              ? { background: 'var(--littera-forest-light)', color: 'var(--littera-forest)', border: '1px solid rgba(26,77,58,0.25)' }
+              : { background: 'var(--littera-mist)', color: 'var(--littera-slate)', border: '1px solid var(--littera-dust)' }
+          }
+        >
+          <BarChart2 className="w-3.5 h-3.5" />
+          Notas
+        </button>
+
+        {/* Export PDF */}
+        <ExportPDFButton essay={essay} />
 
         {/* Save */}
         <button
