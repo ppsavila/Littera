@@ -205,8 +205,8 @@ function wrapText(
 async function buildScoringPage(
   pdf: import('pdf-lib').PDFDocument,
   essay: Essay,
-  scores: Record<string, number | null>,
-  notes: Record<string, string>,
+  scores: { c1: number | null; c2: number | null; c3: number | null; c4: number | null; c5: number | null },
+  notes: { c1: string; c2: string; c3: string; c4: string; c5: string },
   generalComment: string,
   totalScore: number,
   markers: ErrorMarker[],
@@ -321,7 +321,7 @@ async function buildScoringPage(
 
 export function ExportPDFButton({ essay }: Props) {
   const [exporting, setExporting] = useState(false)
-  const { scores, notes, generalComment, totalScore } = useScoringStore()
+  const { scores, notes, generalComment, totalScore: getTotalScore } = useScoringStore()
   const { markers } = useErrorMarkerStore()
   const { annotations } = useAnnotationStore()
   const { pageCanvases, totalPages } = useViewerStore()
@@ -362,10 +362,10 @@ export function ExportPDFButton({ essay }: Props) {
         page.drawImage(img, { x: 0, y: 0, width: img.width / 2, height: img.height / 2 })
       }
 
-      await buildScoringPage(pdf, essay, scores, notes, generalComment, totalScore, markers)
+      await buildScoringPage(pdf, essay, scores, notes, generalComment, getTotalScore(), markers)
 
       const bytes = await pdf.save()
-      const blob = new Blob([bytes], { type: 'application/pdf' })
+      const blob = new Blob([bytes.buffer as ArrayBuffer], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
