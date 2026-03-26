@@ -71,7 +71,7 @@ export default async function DashboardPage() {
           className="font-display text-2xl sm:text-3xl font-semibold mb-1"
           style={{ color: 'var(--littera-ink)' }}
         >
-          Bem-vindo ao Littera
+          Bem-vindo ao Litterando
         </h1>
         <p className="text-sm" style={{ color: 'var(--littera-slate)' }}>
           Resumo das suas redações e atividades recentes.

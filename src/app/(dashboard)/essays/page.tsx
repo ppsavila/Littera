@@ -96,7 +96,7 @@ export default async function EssaysPage() {
             Nenhuma redação ainda
           </h3>
           <p className="text-sm mb-6" style={{ color: 'var(--littera-slate)' }}>
-            Faça o upload da primeira redação para começar a usar o Littera
+            Faça o upload da primeira redação para começar a usar o Litterando
           </p>
           <Link
             href="/essays/new"

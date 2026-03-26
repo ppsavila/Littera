@@ -13,7 +13,7 @@ export default async function HomePage() {
       icon: Upload,
       num: '01',
       title: 'Upload em qualquer formato',
-      desc: 'PDF, imagem digitalizada ou texto colado — o Littera processa qualquer tipo de redação sem complicação.',
+      desc: 'PDF, imagem digitalizada ou texto colado — o Litterando processa qualquer tipo de redação sem complicação.',
     },
     {
       icon: Brain,
@@ -69,7 +69,7 @@ export default async function HomePage() {
             className="font-display text-lg font-semibold"
             style={{ color: 'var(--littera-ink)' }}
           >
-            Littera
+            Litterando
           </span>
         </div>
 
