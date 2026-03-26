@@ -17,7 +17,7 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  title: 'Littera — Correção de Redações do ENEM',
+  title: 'Litterando — Correção de Redações do ENEM',
   description: 'Plataforma inteligente para correção de redações do ENEM com análise por IA',
 }
 

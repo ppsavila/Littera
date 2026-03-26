@@ -30,7 +30,7 @@ export function Header({ user }: HeaderProps) {
   // Find best matching page title
   const pageTitle = Object.entries(PAGE_TITLES).find(([key]) =>
     pathname.startsWith(key)
-  )?.[1] ?? 'Littera'
+  )?.[1] ?? 'Litterando'
 
   return (
     <header

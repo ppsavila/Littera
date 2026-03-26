@@ -44,7 +44,7 @@ export default function LoginPage() {
               L
             </div>
             <span className="font-display text-xl font-semibold tracking-wide text-white">
-              Littera
+              Litterando
             </span>
           </div>
 
@@ -57,7 +57,7 @@ export default function LoginPage() {
               <br />é a que abre portas."
             </p>
             <p className="text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
-              Ferramenta oficial para professores corretores do ENEM
+              Ferramenta perfeita para professores corretores do ENEM
             </p>
           </blockquote>
         </div>
@@ -132,7 +132,7 @@ export default function LoginPage() {
             className="font-display text-xl font-semibold"
             style={{ color: 'var(--littera-ink)' }}
           >
-            Littera
+            Litterando
           </span>
         </div>
 

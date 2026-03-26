@@ -46,7 +46,7 @@ export function Sidebar() {
               className="font-display text-lg font-semibold whitespace-nowrap"
               style={{ color: 'var(--littera-ink)' }}
             >
-              Littera
+              Litterando
             </span>
           </div>
         )}
@@ -102,7 +102,7 @@ export function Sidebar() {
           style={{ borderTop: '1px solid var(--littera-dust)' }}
         >
           <p className="text-xs" style={{ color: 'var(--littera-slate)' }}>
-            Littera · v0.1
+            Litterando · v0.1
           </p>
         </div>
       )}
