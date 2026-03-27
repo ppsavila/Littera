@@ -1,8 +1,14 @@
 import { createClient } from '@/lib/supabase/server'
 import { PricingClient } from './PricingClient'
 import { getUserUsageInfo } from '@/lib/subscriptions/access'
+import { type Plan } from '@/lib/subscriptions/plans'
 
-export default async function PricingPage() {
+interface Props {
+  searchParams: Promise<{ success?: string; plan?: string }>
+}
+
+export default async function PricingPage({ searchParams }: Props) {
+  const { success, plan: planParam } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const usageInfo = user ? await getUserUsageInfo(user.id) : null
@@ -22,7 +28,11 @@ export default async function PricingPage() {
         <div className="littera-rule mt-5 max-w-xs mx-auto" />
       </div>
 
-      <PricingClient currentPlan={usageInfo?.plan ?? 'free'} subscriptionsEnabled={usageInfo?.subscriptionsEnabled ?? false} />
+      <PricingClient
+        currentPlan={usageInfo?.plan ?? 'free'}
+        subscriptionsEnabled={usageInfo?.subscriptionsEnabled ?? false}
+        successPlan={success === 'true' ? (planParam as Plan) : undefined}
+      />
     </div>
   )
 }

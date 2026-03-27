@@ -1,12 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import { Check, Zap, Crown, Loader2, Star } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { Check, Zap, Crown, Loader2, Star, CheckCircle2 } from 'lucide-react'
 import { PLANS, type Plan } from '@/lib/subscriptions/plans'
 
 interface PricingClientProps {
   currentPlan: Plan
   subscriptionsEnabled: boolean
+  successPlan?: Plan
 }
 
 const PLAN_ICONS: Record<Plan, React.ReactNode> = {
@@ -69,11 +71,29 @@ function formatCpf(value: string) {
   return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`
 }
 
-export function PricingClient({ currentPlan, subscriptionsEnabled }: PricingClientProps) {
+export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan }: PricingClientProps) {
+  const router = useRouter()
   const [loading, setLoading] = useState<Plan | null>(null)
   const [error, setError] = useState('')
   const [pendingPlan, setPendingPlan] = useState<Plan | null>(null)
   const [cpf, setCpf] = useState('')
+  const [activePlan, setActivePlan] = useState<Plan>(currentPlan)
+  const [justActivated, setJustActivated] = useState(false)
+
+  useEffect(() => {
+    if (!successPlan) return
+    fetch('/api/subscription/activate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: successPlan }),
+    }).then((res) => {
+      if (res.ok) {
+        setActivePlan(successPlan)
+        setJustActivated(true)
+        router.replace('/pricing')
+      }
+    })
+  }, [successPlan, router])
 
   async function handleUpgrade(plan: Plan) {
     if (plan === 'free' || plan === currentPlan) return
@@ -115,6 +135,22 @@ export function PricingClient({ currentPlan, subscriptionsEnabled }: PricingClie
 
   return (
     <div className="space-y-6 littera-fade-up">
+      {justActivated && (
+        <div
+          className="rounded-xl p-4 text-sm text-center flex items-center justify-center gap-2"
+          style={{
+            background: 'var(--littera-forest-faint)',
+            border: '1px solid var(--littera-forest-light)',
+            color: 'var(--littera-forest)',
+          }}
+        >
+          <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+          <span>
+            <strong>Assinatura confirmada!</strong> Seu plano <strong>{PLANS[activePlan].name}</strong> já está ativo.
+          </span>
+        </div>
+      )}
+
       {!subscriptionsEnabled && (
         <div
           className="rounded-xl p-4 text-sm text-center"
@@ -133,7 +169,7 @@ export function PricingClient({ currentPlan, subscriptionsEnabled }: PricingClie
         {plans.map((planId) => {
           const plan = PLANS[planId]
           const colors = PLAN_COLORS[planId]
-          const isCurrent = currentPlan === planId
+          const isCurrent = activePlan === planId
           const isRecommended = planId === 'plus'
 
           return (
@@ -272,7 +308,7 @@ export function PricingClient({ currentPlan, subscriptionsEnabled }: PricingClie
             <tr style={{ borderBottom: '1px solid var(--littera-dust)' }}>
               <th className="text-left px-5 py-3 font-medium" style={{ color: 'var(--littera-slate)' }}>Recurso</th>
               {plans.map((p) => (
-                <th key={p} className="text-center px-3 py-3 font-semibold" style={{ color: currentPlan === p ? 'var(--littera-forest)' : 'var(--littera-ink)' }}>
+                <th key={p} className="text-center px-3 py-3 font-semibold" style={{ color: activePlan === p ? 'var(--littera-forest)' : 'var(--littera-ink)' }}>
                   {PLANS[p].name}
                 </th>
               ))}
