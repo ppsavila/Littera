@@ -90,7 +90,8 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan }
       if (res.ok) {
         setActivePlan(successPlan)
         setJustActivated(true)
-        router.replace('/pricing')
+        window.history.replaceState({}, '', '/pricing')
+        router.refresh()
       }
     })
   }, [successPlan, router])

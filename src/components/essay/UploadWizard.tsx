@@ -155,6 +155,7 @@ export function UploadWizard() {
 
       const essay = await essayRes.json()
       router.push(`/essays/${essay.id}`)
+      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar redação')
       setSubmitting(false)
