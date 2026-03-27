@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, usePathname } from 'next/navigation'
+import Link from 'next/link'
 import { LogOut } from 'lucide-react'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { PlanBadge } from '@/components/subscription/PlanBadge'
@@ -17,6 +18,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/essays':   'Redações',
   '/students': 'Alunos',
   '/dashboard': 'Painel',
+  '/profile':  'Meu Perfil',
 }
 
 export function Header({ user, usageInfo }: HeaderProps) {
@@ -74,20 +76,25 @@ export function Header({ user, usageInfo }: HeaderProps) {
           />
         )}
 
-        {/* Avatar */}
-        <div
-          className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-          style={{ background: 'var(--littera-forest)' }}
+        {/* Avatar + email — links to profile */}
+        <Link
+          href="/profile"
+          className="flex items-center gap-2 rounded-lg px-1 py-0.5 transition-colors hover:bg-[var(--littera-mist)]"
         >
-          {initials}
-        </div>
+          <div
+            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+            style={{ background: 'var(--littera-forest)' }}
+          >
+            {initials}
+          </div>
 
-        <span
-          className="text-sm hidden sm:block truncate max-w-[180px]"
-          style={{ color: 'var(--littera-slate)' }}
-        >
-          {user.email}
-        </span>
+          <span
+            className="text-sm hidden sm:block truncate max-w-[180px]"
+            style={{ color: 'var(--littera-slate)' }}
+          >
+            {user.email}
+          </span>
+        </Link>
 
         {/* Sign out */}
         <button

@@ -103,7 +103,7 @@ export function LoginForm() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${location.origin}/callback` },
+      options: { emailRedirectTo: `${location.origin}/callback?next=/profile?onboarding=true` },
     })
     setLoading(false)
     if (error) {
