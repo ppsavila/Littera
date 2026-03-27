@@ -12,9 +12,8 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { plan, taxId: rawTaxId } = await request.json() as { plan: Plan; taxId: string }
-  const d = rawTaxId.replace(/\D/g, '')
-  const taxId = `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`
+  const { plan, taxId } = await request.json() as { plan: Plan; taxId: string }
+  // taxId arrives as 11 raw digits from the client
   if (!plan || plan === 'free') {
     return NextResponse.json({ error: 'Plano inválido' }, { status: 400 })
   }
