@@ -71,6 +71,20 @@ function formatCpf(value: string) {
   return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`
 }
 
+function isValidCpf(digits: string): boolean {
+  if (digits.length !== 11 || /^(\d)\1+$/.test(digits)) return false
+  let sum = 0
+  for (let i = 0; i < 9; i++) sum += parseInt(digits[i]) * (10 - i)
+  let r = (sum * 10) % 11
+  if (r === 10 || r === 11) r = 0
+  if (r !== parseInt(digits[9])) return false
+  sum = 0
+  for (let i = 0; i < 10; i++) sum += parseInt(digits[i]) * (11 - i)
+  r = (sum * 10) % 11
+  if (r === 10 || r === 11) r = 0
+  return r === parseInt(digits[10])
+}
+
 export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan }: PricingClientProps) {
   const router = useRouter()
   const [loading, setLoading] = useState<Plan | null>(null)
@@ -106,8 +120,8 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan }
   async function submitCheckout() {
     if (!pendingPlan) return
     const digits = cpf.replace(/\D/g, '')
-    if (digits.length !== 11) {
-      setError('CPF inválido. Digite os 11 dígitos.')
+    if (!isValidCpf(digits)) {
+      setError('CPF inválido. Verifique os números e tente novamente.')
       return
     }
     setLoading(pendingPlan)
