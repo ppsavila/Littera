@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { analyzeEssayStream } from '@/lib/ai/analyze-essay'
 import { NextResponse } from 'next/server'
+import { canUseFeature } from '@/lib/subscriptions/access'
 
 // Simple in-memory rate limiter: max 5 analyses per user per 10 minutes
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
@@ -28,6 +29,18 @@ export async function POST(
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // Check plan feature access (respects feature flag)
+  if (!(await canUseFeature(user.id, 'aiAnalysis'))) {
+    return NextResponse.json(
+      {
+        error: 'Análise por IA está disponível nos planos Plus e Premium.',
+        code: 'FEATURE_REQUIRES_PLUS',
+        upgrade: 'plus',
+      },
+      { status: 403 }
+    )
+  }
 
   if (!checkRateLimit(user.id)) {
     return NextResponse.json(

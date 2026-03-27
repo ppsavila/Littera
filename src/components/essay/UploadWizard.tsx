@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Upload, FileText, ImageIcon, Type, ChevronRight, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
+import { UpgradeModal } from '@/components/subscription/UpgradeModal'
 
 type Step = 'upload' | 'metadata'
 type SourceType = 'pdf' | 'image' | 'text'
@@ -45,6 +46,7 @@ export function UploadWizard() {
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError]           = useState('')
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
@@ -125,10 +127,11 @@ export function UploadWizard() {
         storagePath = path
       }
 
-      const { data: essay, error: essayError } = await supabase
-        .from('essays')
-        .insert({
-          teacher_id:   user.id,
+      // Create essay via API (enforces daily limit)
+      const essayRes = await fetch('/api/essays', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           student_id:   studentId,
           title:        title || 'Redação sem título',
           source_type:  fileState.sourceType,
@@ -136,12 +139,21 @@ export function UploadWizard() {
           raw_text:     rawText,
           theme:        theme.trim() || null,
           status:       'pending',
-        })
-        .select('id')
-        .single()
+        }),
+      })
 
-      if (essayError) throw essayError
+      if (essayRes.status === 429) {
+        setShowUpgradeModal(true)
+        setSubmitting(false)
+        return
+      }
 
+      if (!essayRes.ok) {
+        const errData = await essayRes.json().catch(() => ({}))
+        throw new Error(errData.error ?? 'Erro ao criar redação')
+      }
+
+      const essay = await essayRes.json()
       router.push(`/essays/${essay.id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar redação')
@@ -151,6 +163,12 @@ export function UploadWizard() {
 
   if (step === 'metadata') {
     return (
+      <>
+        <UpgradeModal
+          open={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+          reason="daily_limit"
+        />
       <form onSubmit={handleSubmit} className="space-y-6">
         <div
           className="rounded-xl p-5"
@@ -274,6 +292,7 @@ export function UploadWizard() {
           </button>
         </div>
       </form>
+      </>
     )
   }
 

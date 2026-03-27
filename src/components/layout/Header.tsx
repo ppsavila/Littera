@@ -4,9 +4,13 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter, usePathname } from 'next/navigation'
 import { LogOut } from 'lucide-react'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
+import { PlanBadge } from '@/components/subscription/PlanBadge'
+import { UsageIndicator } from '@/components/subscription/UsageIndicator'
+import type { UsageInfo } from '@/lib/subscriptions/access'
 
 interface HeaderProps {
   user: SupabaseUser
+  usageInfo?: UsageInfo
 }
 
 const PAGE_TITLES: Record<string, string> = {
@@ -15,7 +19,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Painel',
 }
 
-export function Header({ user }: HeaderProps) {
+export function Header({ user, usageInfo }: HeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
@@ -51,6 +55,25 @@ export function Header({ user }: HeaderProps) {
 
       {/* User section */}
       <div className="flex items-center gap-2">
+        {/* Usage indicator (compact) */}
+        {usageInfo && (
+          <UsageIndicator
+            plan={usageInfo.plan}
+            used={usageInfo.used}
+            limit={usageInfo.limit}
+            subscriptionsEnabled={usageInfo.subscriptionsEnabled}
+            compact
+          />
+        )}
+
+        {/* Plan badge */}
+        {usageInfo && (
+          <PlanBadge
+            plan={usageInfo.plan}
+            subscriptionsEnabled={usageInfo.subscriptionsEnabled}
+          />
+        )}
+
         {/* Avatar */}
         <div
           className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"

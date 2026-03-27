@@ -17,7 +17,14 @@
       "Bash(grep -n \"export async function GET\" /e/repos/Revire/src/app/api/essays/[id]/route.ts)",
       "Bash(node -e \"const r = require\\(''./node_modules/react/package.json''\\); console.log\\(r.version\\)\")",
       "Bash(npx supabase:*)",
-      "Bash(ls e:/repos/Littera/.env*)"
+      "Bash(ls e:/repos/Littera/.env*)",
+      "Bash(xargs grep:*)",
+      "Bash(ls -la /e/repos/Littera/src/app/\\\\\\(dashboard\\\\\\)/)",
+      "WebSearch",
+      "WebFetch(domain:docs.abacatepay.com)",
+      "WebFetch(domain:abacatepay.readme.io)",
+      "WebFetch(domain:abacatepay.github.io)",
+      "WebFetch(domain:www.abacatepay.com)"
     ]
   }
 }
