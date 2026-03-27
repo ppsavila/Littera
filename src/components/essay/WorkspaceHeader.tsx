@@ -1,12 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, List, BarChart2, CheckCircle, Loader2 } from 'lucide-react'
+import { ArrowLeft, List, BarChart2, CheckCircle, Loader2, MessageCircle } from 'lucide-react'
 import { ExportPDFButton } from './ExportPDFButton'
 import { useScoringStore } from '@/stores/scoringStore'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { Essay } from '@/types/essay'
 
 interface Props {
@@ -15,16 +15,89 @@ interface Props {
   showAnnotations: boolean
   onToggleScoring: () => void
   showScoring: boolean
+  canWhatsApp: boolean
 }
 
-export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, onToggleScoring, showScoring }: Props) {
-  const { scores, notes, generalComment, totalScore, markClean, isDirty } = useScoringStore()
+type CompScores = { c1: number | null; c2: number | null; c3: number | null; c4: number | null; c5: number | null }
+type CompNotes  = { c1: string; c2: string; c3: string; c4: string; c5: string }
+
+function buildWhatsAppText(essay: Essay, scores: CompScores, notes: CompNotes, generalComment: string): string {
+  const COMP_LABELS = ['Domínio da norma culta', 'Compreensão da proposta', 'Sel. e organização', 'Coesão textual', 'Proposta de intervenção']
+  const total = (scores.c1 ?? 0) + (scores.c2 ?? 0) + (scores.c3 ?? 0) + (scores.c4 ?? 0) + (scores.c5 ?? 0)
+  const compScores = [scores.c1, scores.c2, scores.c3, scores.c4, scores.c5]
+  const compNotes = [notes.c1, notes.c2, notes.c3, notes.c4, notes.c5]
+
+  const lines = [
+    `📝 *Correção: ${essay.title}*`,
+    essay.theme ? `Tema: ${essay.theme}` : '',
+    '',
+    `*Nota final: ${total}/1000*`,
+    '',
+    '*Por competência:*',
+    ...COMP_LABELS.map((label, i) => {
+      const score = compScores[i] ?? '—'
+      const note = compNotes[i]?.trim()
+      return `C${i + 1} (${label}): *${score}/200*${note ? ` — ${note}` : ''}`
+    }),
+    '',
+    generalComment.trim() ? `*Comentário geral:*\n${generalComment.trim()}` : '',
+  ].filter((l) => l !== '')
+
+  return lines.join('\n')
+}
+
+export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, onToggleScoring, showScoring, canWhatsApp }: Props) {
+  const { scores, notes, generalComment, markClean, isDirty } = useScoringStore()
   const [saving, setSaving] = useState(false)
+  const [autoSaved, setAutoSaved] = useState(false)
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const supabase = createClient()
   const router = useRouter()
 
+  // Autosave scoring data 3 seconds after any change
+  useEffect(() => {
+    if (!isDirty) return
+
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
+    autoSaveTimer.current = setTimeout(async () => {
+      const updatePayload: Record<string, unknown> = {
+        score_c1: scores.c1,
+        score_c2: scores.c2,
+        score_c3: scores.c3,
+        score_c4: scores.c4,
+        score_c5: scores.c5,
+        notes_c1: notes.c1 || null,
+        notes_c2: notes.c2 || null,
+        notes_c3: notes.c3 || null,
+        notes_c4: notes.c4 || null,
+        notes_c5: notes.c5 || null,
+        general_comment: generalComment || null,
+      }
+      if (essay.status === 'pending' || essay.status === 'analyzed') {
+        updatePayload.status = 'correcting'
+      }
+
+      const { error } = await supabase
+        .from('essays')
+        .update(updatePayload)
+        .eq('id', essay.id)
+
+      if (!error) {
+        markClean()
+        setAutoSaved(true)
+        setTimeout(() => setAutoSaved(false), 2500)
+      }
+    }, 3000)
+
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDirty, scores, notes, generalComment])
+
   async function handleSave() {
     setSaving(true)
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
     const { error } = await supabase
       .from('essays')
       .update({
@@ -119,12 +192,39 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
           Notas
         </button>
 
+        {/* WhatsApp — Premium */}
+        {canWhatsApp && (
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(buildWhatsAppText(essay, scores, notes, generalComment))}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
+            style={{
+              background: '#f0fdf4',
+              color: '#16a34a',
+              border: '1px solid #bbf7d0',
+            }}
+            title="Enviar correção via WhatsApp"
+          >
+            <MessageCircle className="w-3.5 h-3.5" />
+            WhatsApp
+          </a>
+        )}
+
         {/* Export PDF */}
         <div data-tour="export-btn">
           <ExportPDFButton essay={essay} />
         </div>
 
-        {/* Save */}
+        {/* Autosave indicator */}
+        {autoSaved && !isDirty && (
+          <span className="hidden sm:flex items-center gap-1 text-xs" style={{ color: 'var(--littera-sage)' }}>
+            <CheckCircle className="w-3 h-3" />
+            Salvo
+          </span>
+        )}
+
+        {/* Save (mark as done) */}
         <button
           data-tour="save-btn"
           onClick={handleSave}
@@ -143,7 +243,7 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
           ) : (
             <CheckCircle className="w-3.5 h-3.5" />
           )}
-          {saving ? 'Salvando...' : isDirty ? 'Salvar' : 'Salvo'}
+          {saving ? 'Salvando...' : isDirty ? 'Concluir' : 'Concluído'}
         </button>
       </div>
     </header>

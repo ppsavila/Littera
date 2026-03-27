@@ -56,6 +56,52 @@ function PasswordField({
   )
 }
 
+// Shared success card used for magic link / signup / forgot password sent states
+function EmailSentCard({
+  title,
+  email,
+  description,
+  onBack,
+  backLabel = 'Voltar',
+}: {
+  title: string
+  email: string
+  description: string
+  onBack: () => void
+  backLabel?: string
+}) {
+  return (
+    <div
+      className="text-center py-8 px-6 rounded-xl"
+      style={{
+        background: 'var(--littera-forest-light)',
+        border: '1px solid rgba(26,77,58,0.20)',
+      }}
+    >
+      <div
+        className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
+        style={{ background: 'var(--littera-forest)', color: '#fff' }}
+      >
+        <Mail className="w-5 h-5" />
+      </div>
+      <h3 className="font-display text-lg font-semibold mb-2" style={{ color: 'var(--littera-forest)' }}>
+        {title}
+      </h3>
+      <p className="text-sm leading-relaxed" style={{ color: 'var(--littera-slate)' }}>
+        {description}{' '}
+        <strong className="font-medium" style={{ color: 'var(--littera-ink)' }}>{email}</strong>.
+      </p>
+      <button
+        onClick={onBack}
+        className="mt-5 text-sm font-medium underline underline-offset-2 transition-colors"
+        style={{ color: 'var(--littera-forest)' }}
+      >
+        {backLabel}
+      </button>
+    </div>
+  )
+}
+
 export function LoginForm() {
   const [mode, setMode] = useState<Mode>('password')
   const [email, setEmail] = useState('')
@@ -66,6 +112,7 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
   const [signedUp, setSignedUp] = useState(false)
+  const [forgotSent, setForgotSent] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
   const supabase = createClient()
@@ -137,73 +184,71 @@ export function LoginForm() {
     }
   }
 
+  async function handleForgotPassword(e: React.SyntheticEvent) {
+    e.preventDefault()
+    if (!email) {
+      setError('Informe seu e-mail para redefinir a senha.')
+      return
+    }
+    setLoading(true)
+    setError('')
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${location.origin}/callback?next=/profile`,
+    })
+    setLoading(false)
+    if (error) {
+      setError(error.message)
+    } else {
+      setForgotSent(true)
+    }
+  }
+
+  function switchMode(next: Mode) {
+    setMode(next)
+    setError('')
+    setSent(false)
+    setSignedUp(false)
+    setForgotSent(false)
+  }
+
+  // --- Success states ---
+
   if (sent) {
     return (
-      <div
-        className="text-center py-8 px-6 rounded-xl"
-        style={{
-          background: 'var(--littera-forest-light)',
-          border: '1px solid rgba(26,77,58,0.20)',
-        }}
-      >
-        <div
-          className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
-          style={{ background: 'var(--littera-forest)', color: '#fff' }}
-        >
-          <Mail className="w-5 h-5" />
-        </div>
-        <h3 className="font-display text-lg font-semibold mb-2" style={{ color: 'var(--littera-forest)' }}>
-          Verifique seu e-mail
-        </h3>
-        <p className="text-sm leading-relaxed" style={{ color: 'var(--littera-slate)' }}>
-          Enviamos um link para{' '}
-          <strong className="font-medium" style={{ color: 'var(--littera-ink)' }}>{email}</strong>.
-          <br />Clique no link para entrar.
-        </p>
-        <button
-          onClick={() => setSent(false)}
-          className="mt-5 text-sm font-medium underline underline-offset-2 transition-colors"
-          style={{ color: 'var(--littera-forest)' }}
-        >
-          Voltar
-        </button>
-      </div>
+      <EmailSentCard
+        title="Verifique seu e-mail"
+        email={email}
+        description="Enviamos um link de acesso para"
+        onBack={() => setSent(false)}
+      />
     )
   }
 
   if (signedUp) {
     return (
-      <div
-        className="text-center py-8 px-6 rounded-xl"
-        style={{
-          background: 'var(--littera-forest-light)',
-          border: '1px solid rgba(26,77,58,0.20)',
-        }}
-      >
-        <div
-          className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
-          style={{ background: 'var(--littera-forest)', color: '#fff' }}
-        >
-          <Mail className="w-5 h-5" />
-        </div>
-        <h3 className="font-display text-lg font-semibold mb-2" style={{ color: 'var(--littera-forest)' }}>
-          Conta criada!
-        </h3>
-        <p className="text-sm leading-relaxed" style={{ color: 'var(--littera-slate)' }}>
-          Enviamos um e-mail de confirmação para{' '}
-          <strong className="font-medium" style={{ color: 'var(--littera-ink)' }}>{email}</strong>.
-          <br />Confirme para ativar sua conta.
-        </p>
-        <button
-          onClick={() => { setSignedUp(false); setMode('password') }}
-          className="mt-5 text-sm font-medium underline underline-offset-2 transition-colors"
-          style={{ color: 'var(--littera-forest)' }}
-        >
-          Ir para login
-        </button>
-      </div>
+      <EmailSentCard
+        title="Conta criada!"
+        email={email}
+        description="Enviamos um e-mail de confirmação para"
+        onBack={() => { setSignedUp(false); switchMode('password') }}
+        backLabel="Ir para login"
+      />
     )
   }
+
+  if (forgotSent) {
+    return (
+      <EmailSentCard
+        title="E-mail enviado!"
+        email={email}
+        description="Enviamos um link para redefinir sua senha para"
+        onBack={() => { setForgotSent(false); switchMode('password') }}
+        backLabel="Voltar para login"
+      />
+    )
+  }
+
+  // --- Main form ---
 
   const loginModes: { key: Mode; label: string }[] = [
     { key: 'password', label: 'Senha' },
@@ -230,7 +275,7 @@ export function LoginForm() {
         {loginModes.map(({ key, label }) => (
           <button
             key={key}
-            onClick={() => { setMode(key); setError('') }}
+            onClick={() => switchMode(key)}
             className="flex-1 py-2 text-sm font-medium rounded-md transition-all"
             style={
               mode === key
@@ -321,6 +366,24 @@ export function LoginForm() {
             : 'Enviar link de acesso'}
         </ClayButton>
       </form>
+
+      {/* Forgot password — only shown in password mode */}
+      {mode === 'password' && (
+        <button
+          onClick={handleForgotPassword}
+          disabled={loading}
+          className="w-full text-center text-xs transition-colors"
+          style={{ color: 'var(--littera-slate)' }}
+        >
+          Esqueceu a senha?{' '}
+          <span
+            className="underline underline-offset-2 font-medium"
+            style={{ color: 'var(--littera-forest)' }}
+          >
+            Redefinir
+          </span>
+        </button>
+      )}
     </div>
   )
 }

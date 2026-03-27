@@ -40,25 +40,3 @@ export async function GET() {
   })
 }
 
-// Allow admin to manually set a user's plan (for testing)
-export async function PATCH(request: Request) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  // TODO: restrict to admin users only before going live
-  const { plan, userId } = await request.json()
-  const targetId = userId ?? user.id
-
-  if (!['free', 'plus', 'premium'].includes(plan)) {
-    return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
-  }
-
-  const { error } = await supabase
-    .from('profiles')
-    .update({ subscription_plan: plan, subscription_status: 'active' })
-    .eq('id', targetId)
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 })
-  return NextResponse.json({ success: true, plan })
-}
