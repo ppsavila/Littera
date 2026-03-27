@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { NextResponse } from 'next/server'
 import { PLANS, type Plan } from '@/lib/subscriptions/plans'
 
@@ -12,8 +13,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Plano inválido' }, { status: 400 })
   }
 
+  const db = createServiceClient()
+
   // Verify there's a pending payment for this user + plan
-  const { data: payment } = await supabase
+  const { data: payment } = await db
     .from('subscription_payments')
     .select('id')
     .eq('user_id', user.id)
@@ -27,16 +30,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Nenhum pagamento pendente encontrado' }, { status: 404 })
   }
 
-  // Activate the plan
   await Promise.all([
-    supabase
-      .from('profiles')
-      .update({ subscription_plan: plan })
-      .eq('id', user.id),
-    supabase
-      .from('subscription_payments')
-      .update({ status: 'completed' })
-      .eq('id', payment.id),
+    db.from('profiles').update({ subscription_plan: plan }).eq('id', user.id),
+    db.from('subscription_payments').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', payment.id),
   ])
 
   return NextResponse.json({ ok: true, plan })

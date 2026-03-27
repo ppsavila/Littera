@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { NextResponse } from 'next/server'
 import { PLANS, type Plan } from '@/lib/subscriptions/plans'
 
@@ -7,6 +8,7 @@ const ABACATE_API_URL = 'https://api.abacatepay.com/v1'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
+  const db = createServiceClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -82,7 +84,7 @@ export async function POST(request: Request) {
   const data = await response.json()
 
   // Log payment attempt
-  await supabase.from('subscription_payments').insert({
+  await db.from('subscription_payments').insert({
     user_id: user.id,
     plan,
     amount: planConfig.price,
