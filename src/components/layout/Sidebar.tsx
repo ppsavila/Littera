@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { FileText, Users, ChevronLeft, ChevronRight } from 'lucide-react'
+import { FileText, Users, ChevronLeft, ChevronRight, Zap } from 'lucide-react'
 import { useState } from 'react'
 
 const navItems = [
@@ -95,10 +95,32 @@ export function Sidebar() {
         })}
       </nav>
 
+      {/* Upgrade CTA */}
+      <div
+        className="px-1.5 pb-2 flex-shrink-0"
+        style={{ borderTop: '1px solid var(--littera-dust)', paddingTop: 8 }}
+      >
+        <Link
+          href="/pricing"
+          title={collapsed ? 'Ver planos' : undefined}
+          className="flex items-center rounded-lg text-sm font-medium transition-all"
+          style={{
+            gap: collapsed ? 0 : 10,
+            padding: collapsed ? '10px 0' : '10px 12px',
+            justifyContent: collapsed ? 'center' : 'flex-start',
+            color: 'var(--littera-forest)',
+            background: 'var(--littera-forest-faint)',
+          }}
+        >
+          <Zap className="w-4 h-4 flex-shrink-0" style={{ strokeWidth: 2 }} />
+          {!collapsed && 'Ver planos'}
+        </Link>
+      </div>
+
       {/* Footer */}
       {!collapsed && (
         <div
-          className="px-5 py-4 flex-shrink-0"
+          className="px-5 py-3 flex-shrink-0"
           style={{ borderTop: '1px solid var(--littera-dust)' }}
         >
           <p className="text-xs" style={{ color: 'var(--littera-slate)' }}>
