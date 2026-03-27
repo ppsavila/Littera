@@ -22,7 +22,7 @@ export function PlanBadge({ plan, subscriptionsEnabled, className }: PlanBadgePr
 
   return (
     <Link
-      href="/subscription"
+      href="/pricing"
       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold transition-opacity hover:opacity-80 ${className ?? ''}`}
       style={{ background: config.bg, color: config.color }}
       title={`Plano ${config.label}`}

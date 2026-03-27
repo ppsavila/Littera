@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import type { Plan } from '@/lib/subscriptions/plans'
 import { createHmac, timingSafeEqual } from 'crypto'
 
@@ -68,7 +68,7 @@ function verifySignature(rawBody: string, signature: string, secret: string): bo
 }
 
 async function activateSubscription(userId: string, plan: Plan, paymentId: string | null) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const expiresAt = new Date()
   expiresAt.setMonth(expiresAt.getMonth() + 1)
@@ -94,7 +94,7 @@ async function activateSubscription(userId: string, plan: Plan, paymentId: strin
 }
 
 async function deactivateSubscription(userId: string) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   await supabase
     .from('profiles')
     .update({ subscription_plan: 'free', subscription_status: 'inactive' })
