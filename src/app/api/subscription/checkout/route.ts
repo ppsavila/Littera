@@ -10,7 +10,9 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { plan, taxId } = await request.json() as { plan: Plan; taxId: string }
+  const { plan, taxId: rawTaxId } = await request.json() as { plan: Plan; taxId: string }
+  const d = rawTaxId.replace(/\D/g, '')
+  const taxId = `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`
   if (!plan || plan === 'free') {
     return NextResponse.json({ error: 'Plano inválido' }, { status: 400 })
   }
@@ -36,6 +38,7 @@ export async function POST(request: Request) {
     .eq('id', user.id)
     .single()
 
+  console.log('[checkout] taxId being sent:', taxId)
   // Create billing session via Abacate.pay
   // Docs: https://docs.abacatepay.com
   const response = await fetch(`${ABACATE_API_URL}/billing/create`, {
