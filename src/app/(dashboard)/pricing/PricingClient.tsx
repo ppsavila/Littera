@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, Zap, Crown, Loader2, Star, CheckCircle2 } from 'lucide-react'
+import { Check, Zap, Crown, Loader2, Star, CheckCircle2, AlertTriangle } from 'lucide-react'
 import { PLANS, type Plan } from '@/lib/subscriptions/plans'
 
 interface PricingClientProps {
   currentPlan: Plan
   subscriptionsEnabled: boolean
   successPlan?: Plan
+  subscriptionStatus: string | null
+  subscriptionExpiresAt: string | null
 }
 
 const PLAN_ICONS: Record<Plan, React.ReactNode> = {
@@ -85,7 +87,7 @@ function isValidCpf(digits: string): boolean {
   return r === parseInt(digits[10])
 }
 
-export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan }: PricingClientProps) {
+export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan, subscriptionStatus, subscriptionExpiresAt }: PricingClientProps) {
   const router = useRouter()
   const [loading, setLoading] = useState<Plan | null>(null)
   const [error, setError] = useState('')
@@ -93,6 +95,10 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan }
   const [cpf, setCpf] = useState('')
   const [activePlan, setActivePlan] = useState<Plan>(currentPlan)
   const [justActivated, setJustActivated] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelledUntil, setCancelledUntil] = useState<string | null>(null)
+  const [activeStatus, setActiveStatus] = useState(subscriptionStatus)
 
   useEffect(() => {
     if (!successPlan) return
@@ -146,7 +152,33 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan }
     }
   }
 
+  async function handleCancel() {
+    setCancelling(true)
+    setError('')
+    try {
+      const res = await fetch('/api/subscription/cancel', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error ?? 'Erro ao cancelar assinatura.')
+      } else {
+        setActiveStatus('cancelled')
+        setCancelledUntil(data.accessUntil)
+        setShowCancelConfirm(false)
+        router.refresh()
+      }
+    } catch {
+      setError('Erro de conexão. Tente novamente.')
+    } finally {
+      setCancelling(false)
+    }
+  }
+
   const plans: Plan[] = ['free', 'plus', 'premium']
+  const canCancel = activePlan !== 'free' && activeStatus === 'active'
+  const isCancelled = activeStatus === 'cancelled'
+  const expiryDate = (cancelledUntil ?? subscriptionExpiresAt)
+    ? new Date(cancelledUntil ?? subscriptionExpiresAt!).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+    : null
 
   return (
     <div className="space-y-6 littera-fade-up">
@@ -359,9 +391,89 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan }
         </table>
       </div>
 
+      {/* Subscription management */}
+      {subscriptionsEnabled && (canCancel || isCancelled) && (
+        <div
+          className="rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+          style={{ background: 'var(--littera-mist)', border: '1px solid var(--littera-dust)' }}
+        >
+          <div>
+            <p className="text-sm font-medium" style={{ color: 'var(--littera-ink)' }}>
+              {isCancelled ? 'Assinatura cancelada' : `Plano ${PLANS[activePlan].name} ativo`}
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--littera-slate)' }}>
+              {isCancelled && expiryDate
+                ? `Acesso garantido até ${expiryDate}. Após essa data, o plano volta para Grátis.`
+                : expiryDate
+                ? `Próxima renovação: ${expiryDate}`
+                : 'Cobrança mensal via PIX'}
+            </p>
+          </div>
+          {canCancel && (
+            <button
+              onClick={() => setShowCancelConfirm(true)}
+              className="text-xs font-medium flex-shrink-0 px-3 py-1.5 rounded-lg transition-colors"
+              style={{ color: '#dc2626', border: '1px solid #fecaca', background: '#fff1f1' }}
+            >
+              Cancelar assinatura
+            </button>
+          )}
+        </div>
+      )}
+
       <p className="text-xs text-center" style={{ color: 'var(--littera-slate)' }}>
         Pagamentos processados com segurança via Abacate.pay · Cancele quando quiser
       </p>
+
+      {/* Cancel confirmation modal */}
+      {showCancelConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.4)' }}
+          onClick={() => setShowCancelConfirm(false)}
+        >
+          <div
+            className="rounded-2xl p-6 w-full max-w-sm space-y-4"
+            style={{ background: 'var(--littera-paper)', boxShadow: 'var(--littera-shadow)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#fff1f1' }}>
+                <AlertTriangle className="w-5 h-5" style={{ color: '#dc2626' }} />
+              </div>
+              <div>
+                <h3 className="font-display font-semibold text-base" style={{ color: 'var(--littera-ink)' }}>
+                  Cancelar assinatura?
+                </h3>
+                <p className="text-sm mt-1" style={{ color: 'var(--littera-slate)' }}>
+                  As cobranças param imediatamente.
+                  {expiryDate ? ` Você mantém acesso ao plano ${PLANS[activePlan].name} até ${expiryDate}.` : ' Seu acesso permanece até o fim do período pago.'}
+                </p>
+              </div>
+            </div>
+            {error && (
+              <p className="text-xs" style={{ color: '#dc2626' }}>{error}</p>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowCancelConfirm(false)}
+                className="flex-1 py-2.5 text-sm rounded-xl"
+                style={{ border: '1px solid var(--littera-dust)', color: 'var(--littera-slate)' }}
+              >
+                Manter plano
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="flex-1 py-2.5 text-sm font-semibold rounded-xl"
+                style={{ background: '#dc2626', color: '#fff' }}
+              >
+                {cancelling ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Confirmar cancelamento'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* CPF modal */}
       {pendingPlan && (

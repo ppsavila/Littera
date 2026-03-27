@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { NextResponse } from 'next/server'
 import { PLANS, type Plan } from '@/lib/subscriptions/plans'
+import { logger } from '@/lib/logger'
 
 const ABACATE_API_KEY = process.env.ABACATE_PAY_API_KEY
 const ABACATE_API_URL = 'https://api.abacatepay.com/v1'
@@ -13,9 +14,15 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { plan, taxId } = await request.json() as { plan: Plan; taxId: string }
-  // taxId arrives as 11 raw digits from the client
+
   if (!plan || plan === 'free') {
     return NextResponse.json({ error: 'Plano inválido' }, { status: 400 })
+  }
+
+  // Validate CPF: strip formatting, must be 11 digits with valid check digits
+  const cpfDigits = (taxId ?? '').replace(/\D/g, '')
+  if (!isValidCpf(cpfDigits)) {
+    return NextResponse.json({ error: 'CPF inválido. Verifique e tente novamente.' }, { status: 400 })
   }
 
   const planConfig = PLANS[plan]
@@ -35,12 +42,11 @@ export async function POST(request: Request) {
   // Fetch user profile for customer data
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name')
+    .select('full_name, cellphone')
     .eq('id', user.id)
     .single()
 
-  console.log('[checkout] taxId being sent:', taxId)
-  // Create billing session via Abacate.pay
+  // Create recurring monthly subscription via Abacate.pay
   // Docs: https://docs.abacatepay.com
   const response = await fetch(`${ABACATE_API_URL}/billing/create`, {
     method: 'POST',
@@ -62,8 +68,8 @@ export async function POST(request: Request) {
       customer: {
         name: profile?.full_name || user.email?.split('@')[0] || 'Professor',
         email: user.email ?? '',
-        cellphone: '',
-        taxId,
+        cellphone: profile?.cellphone ?? '',
+        taxId: cpfDigits,
         metadata: { userId: user.id, plan },
       },
       returnUrl: `${appUrl}/pricing`,
@@ -73,7 +79,12 @@ export async function POST(request: Request) {
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}))
-    console.error('[checkout] Abacate.pay error:', response.status, JSON.stringify(err))
+    logger.error('checkout.abacate_error', new Error('Abacate.pay request failed'), {
+      status: response.status,
+      userId: user.id,
+      plan,
+      details: err,
+    })
     return NextResponse.json(
       { error: 'Erro ao criar sessão de pagamento', details: err },
       { status: 502 }
@@ -81,20 +92,53 @@ export async function POST(request: Request) {
   }
 
   const data = await response.json()
+  const subscriptionId: string | null = data.data?.id ?? null
 
-  // Log payment attempt
+  // Persist subscription ID for future cancellation requests
+  if (subscriptionId) {
+    await db
+      .from('profiles')
+      .update({ abacate_subscription_id: subscriptionId })
+      .eq('id', user.id)
+  }
+
+  // Log initial payment attempt
   await db.from('subscription_payments').insert({
     user_id: user.id,
     plan,
     amount: planConfig.price,
     currency: 'BRL',
     status: 'pending',
-    checkout_id: data.data?.id ?? null,
+    checkout_id: subscriptionId,
+    payment_type: 'initial',
     metadata: { abacate: data },
   })
 
+  logger.info('checkout.created', { userId: user.id, plan, subscriptionId })
+
   return NextResponse.json({
     checkoutUrl: data.data?.url ?? null,
-    checkoutId: data.data?.id ?? null,
+    checkoutId: subscriptionId,
   })
+}
+
+/**
+ * Validates a Brazilian CPF number.
+ * Accepts 11 raw digits (no formatting).
+ * Returns false for known invalid sequences (all same digit) and wrong check digits.
+ */
+function isValidCpf(cpf: string): boolean {
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false
+
+  let sum = 0
+  for (let i = 0; i < 9; i++) sum += parseInt(cpf[i]) * (10 - i)
+  let check = (sum * 10) % 11
+  if (check === 10 || check === 11) check = 0
+  if (check !== parseInt(cpf[9])) return false
+
+  sum = 0
+  for (let i = 0; i < 10; i++) sum += parseInt(cpf[i]) * (11 - i)
+  check = (sum * 10) % 11
+  if (check === 10 || check === 11) check = 0
+  return check === parseInt(cpf[10])
 }

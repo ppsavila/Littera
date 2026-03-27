@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { Users } from 'lucide-react'
+import { StudentInsightsButton } from '@/components/students/StudentInsightsButton'
 
 export default async function StudentsPage() {
   const supabase = await createClient()
@@ -98,13 +99,20 @@ export default async function StudentsPage() {
                   )}
                 </div>
 
-                {/* Essay count */}
-                <span
-                  className="text-xs font-medium tabular-nums flex-shrink-0"
-                  style={{ color: 'var(--littera-slate)' }}
-                >
-                  {essayCount} redaç{essayCount !== 1 ? 'ões' : 'ão'}
-                </span>
+                {/* Essay count + Insights */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span
+                    className="text-xs font-medium tabular-nums"
+                    style={{ color: 'var(--littera-slate)' }}
+                  >
+                    {essayCount} redaç{essayCount !== 1 ? 'ões' : 'ão'}
+                  </span>
+                  <StudentInsightsButton
+                    studentId={student.id}
+                    studentName={student.name}
+                    essayCount={essayCount}
+                  />
+                </div>
               </div>
             )
           })}

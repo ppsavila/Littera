@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import { CorrectionWorkspace } from '@/components/essay/CorrectionWorkspace'
+import { canUseFeature } from '@/lib/subscriptions/access'
 import type { Essay } from '@/types/essay'
 import type { ErrorMarker } from '@/types/error-marker'
 
@@ -24,7 +25,7 @@ export default async function EssayPage({ params }: Props) {
 
   if (!essay) notFound()
 
-  const [annotationsResult, errorMarkersResult] = await Promise.all([
+  const [annotationsResult, errorMarkersResult, canWhatsApp] = await Promise.all([
     supabase
       .from('annotations')
       .select('*')
@@ -36,6 +37,7 @@ export default async function EssayPage({ params }: Props) {
       .eq('essay_id', id)
       .order('created_at', { ascending: true })
       .then((r) => r), // errors handled gracefully below
+    canUseFeature(user.id, 'whatsapp'),
   ])
 
   return (
@@ -43,6 +45,7 @@ export default async function EssayPage({ params }: Props) {
       essay={essay as Essay}
       initialAnnotations={annotationsResult.data ?? []}
       initialErrorMarkers={(errorMarkersResult.error ? [] : errorMarkersResult.data ?? []) as ErrorMarker[]}
+      canWhatsApp={canWhatsApp}
     />
   )
 }

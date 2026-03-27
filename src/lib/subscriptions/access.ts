@@ -102,6 +102,8 @@ export interface UsageInfo {
   resetDate: string | null
   features: PlanFeatures
   subscriptionsEnabled: boolean
+  subscriptionStatus: string | null
+  subscriptionExpiresAt: string | null
 }
 
 /**
@@ -118,13 +120,15 @@ export async function getUserUsageInfo(userId: string): Promise<UsageInfo> {
       resetDate: null,
       features: { aiAnalysis: true, studentInsights: true, whatsapp: true },
       subscriptionsEnabled: false,
+      subscriptionStatus: null,
+      subscriptionExpiresAt: null,
     }
   }
 
   const supabase = await createClient()
   const { data: profile } = await supabase
     .from('profiles')
-    .select('subscription_plan, daily_corrections_count, daily_corrections_reset_date')
+    .select('subscription_plan, subscription_status, subscription_expires_at, daily_corrections_count, daily_corrections_reset_date')
     .eq('id', userId)
     .single()
 
@@ -141,5 +145,7 @@ export async function getUserUsageInfo(userId: string): Promise<UsageInfo> {
     resetDate: profile?.daily_corrections_reset_date ?? null,
     features: planConfig.features,
     subscriptionsEnabled: true,
+    subscriptionStatus: profile?.subscription_status ?? null,
+    subscriptionExpiresAt: profile?.subscription_expires_at ?? null,
   }
 }

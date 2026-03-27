@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { canUseFeature } from '@/lib/subscriptions/access'
+import { analyzeStudentProgress } from '@/lib/ai/analyze-student'
+import { logger } from '@/lib/logger'
 
 /**
  * POST /api/ai/student-analysis
@@ -50,14 +52,20 @@ export async function POST(request: Request) {
     )
   }
 
-  // TODO: Implement Claude analysis of student progress
-  // const analysis = await analyzeStudentProgress(student.name, essays)
-
-  return NextResponse.json({
-    studentId,
-    studentName: student.name,
-    essayCount: essays.length,
-    // analysis,
-    message: 'Análise de progresso em desenvolvimento — disponível em breve!',
-  })
+  try {
+    const analysis = await analyzeStudentProgress(student.name, essays)
+    logger.info('ai.student-analysis.completed', { studentId, essayCount: essays.length })
+    return NextResponse.json({
+      studentId,
+      studentName: student.name,
+      essayCount: essays.length,
+      analysis,
+    })
+  } catch (err) {
+    logger.error('ai.student-analysis.failed', err, { studentId })
+    return NextResponse.json(
+      { error: 'Erro ao gerar análise de progresso. Tente novamente.' },
+      { status: 500 }
+    )
+  }
 }

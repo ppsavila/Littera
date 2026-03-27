@@ -32,6 +32,8 @@ export default async function PricingPage({ searchParams }: Props) {
         currentPlan={usageInfo?.plan ?? 'free'}
         subscriptionsEnabled={usageInfo?.subscriptionsEnabled ?? false}
         successPlan={success === 'true' ? (planParam as Plan) : undefined}
+        subscriptionStatus={usageInfo?.subscriptionStatus ?? null}
+        subscriptionExpiresAt={usageInfo?.subscriptionExpiresAt ?? null}
       />
     </div>
   )
