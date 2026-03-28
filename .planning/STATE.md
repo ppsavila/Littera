@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Not started
-last_updated: "2026-03-28T21:14:34.490Z"
+last_updated: "2026-03-28T21:19:11.086Z"
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State
@@ -54,6 +54,9 @@ Status: Not started
 - [Phase 03-01]: Use CSS pointerEvents toggle on wrapper div instead of conditional React rendering to preserve Konva Stage across mode switches
 - [Phase 03-02]: No undo history for color changes — undoing a recolor with Ctrl+Z would be confusing UX
 - [Phase 03-02]: ShapeControlsPanel creates its own Supabase client — no essayId prop needed, annotationId sufficient for DB updates
+- [Phase 03-03]: replaceAnnotation does not push to undo history — swapping tempId for real DB id is not a user-undoable action
+- [Phase 03-03]: freehand preview updates every 8 points (mod 8) to balance visual feedback vs render frequency
+- [Phase 03-03]: Keyboard guard checks tagName (INPUT/TEXTAREA) + isContentEditable to cover inline text editor from 03-02
 
 ## Notes
 
@@ -64,4 +67,4 @@ Status: Not started
 - [01-02] SEC-04 progress: rate limiting added to essays POST, checkout POST, student-analysis POST
 - [01-02] Pre-existing TS error in src/lib/validation/schemas.ts:42 deferred to testing phase
 - [01-03] Phase 1 fully complete — all SEC requirements verified end-to-end
-- Last session: Completed 03-02-PLAN.md (2026-03-28)
+- Last session: Completed 03-03-PLAN.md (2026-03-28)
