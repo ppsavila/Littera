@@ -7,11 +7,31 @@ import { logger } from '@/lib/logger'
 const ABACATE_API_KEY = process.env.ABACATE_PAY_API_KEY
 const ABACATE_API_URL = 'https://api.abacatepay.com/v1'
 
+const CHECKOUT_RATE_MAX = 5
+const CHECKOUT_RATE_WINDOW_MS = 60 * 60 * 1000 // 1 hour
+
+async function checkCheckoutRateLimit(userId: string): Promise<boolean> {
+  const db = createServiceClient()
+  const { data } = await db.rpc('check_ai_rate_limit', {
+    p_user_id: userId,
+    p_max: CHECKOUT_RATE_MAX,
+    p_window_ms: CHECKOUT_RATE_WINDOW_MS,
+  })
+  return data === true
+}
+
 export async function POST(request: Request) {
   const supabase = await createClient()
   const db = createServiceClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  if (!(await checkCheckoutRateLimit(user.id))) {
+    return NextResponse.json(
+      { error: 'Muitas tentativas de pagamento. Tente novamente mais tarde.' },
+      { status: 429 }
+    )
+  }
 
   const { plan, taxId } = await request.json() as { plan: Plan; taxId: string }
 
