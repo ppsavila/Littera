@@ -27,7 +27,8 @@
       "WebFetch(domain:www.abacatepay.com)",
       "Bash(node -e \"const p=require\\(''./package.json''\\); const all={...p.dependencies,...p.devDependencies}; console.log\\(''sentry:'', Object.keys\\(all\\).filter\\(k=>k.includes\\(''sentry''\\)\\)\\); console.log\\(''ci files exist:'', require\\(''fs''\\).existsSync\\(''.github/workflows''\\)\\)\")",
       "Bash(node -e \"const p=require\\(''./package.json''\\); console.log\\(''next:'', p.dependencies.next\\); console.log\\(''node:'', process.version\\)\")",
-      "Bash(node -e \"const {captureRequestError}=require\\(''@sentry/nextjs''\\); console.log\\(captureRequestError.length\\)\")"
+      "Bash(node -e \"const {captureRequestError}=require\\(''@sentry/nextjs''\\); console.log\\(captureRequestError.length\\)\")",
+      "Bash(node \".claude/get-shit-done/bin/gsd-tools.cjs\" state advance-plan)"
     ]
   }
 }
