@@ -20,11 +20,11 @@ import type { AnnotationTool } from '@/types/annotation'
 const TOOLS: { tool: AnnotationTool; label: string; icon: React.ElementType; shortcut: string }[] = [
   { tool: 'pan',       label: 'Mover',    icon: MousePointer2, shortcut: 'V' },
   { tool: 'highlight', label: 'Destaque', icon: Highlighter,   shortcut: 'H' },
-  { tool: 'freehand',  label: 'Caneta',   icon: Pen,           shortcut: 'P' },
+  { tool: 'freehand',  label: 'Caneta',   icon: Pen,           shortcut: 'D' },
   { tool: 'arrow',     label: 'Seta',     icon: ArrowRight,    shortcut: 'A' },
   { tool: 'textbox',   label: 'Texto',    icon: Type,          shortcut: 'T' },
   { tool: 'marker',    label: 'Marcador', icon: MapPin,        shortcut: 'M' },
-  { tool: 'eraser',    label: 'Apagar',   icon: Eraser,        shortcut: 'E' },
+  { tool: 'eraser',    label: 'Apagar',   icon: Eraser,        shortcut: 'X' },
 ]
 
 /** Desktop vertical toolbar — hidden on mobile */
@@ -94,7 +94,7 @@ export function AnnotationToolbar() {
         <button
           data-tour="error-mode"
           onClick={handleToggleErrorMode}
-          title="Marcar erros"
+          title="Marcar erros (E)"
           className="w-8 h-8 flex items-center justify-center rounded-lg transition-all"
           style={
             isErrorMode

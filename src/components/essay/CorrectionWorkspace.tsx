@@ -26,9 +26,9 @@ interface Props {
 type MobileTab = 'document' | 'scoring'
 
 export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMarkers, canWhatsApp }: Props) {
-  const { setAnnotations, undo } = useAnnotationStore()
+  const { setAnnotations, undo, selectAnnotation, setTool } = useAnnotationStore()
   const { initFromEssay } = useScoringStore()
-  const { setMarkers } = useErrorMarkerStore()
+  const { setMarkers, isErrorMode, setIsErrorMode, setSelectedErrorCode } = useErrorMarkerStore()
   const [showAnnotationSidebar, setShowAnnotationSidebar] = useState(false)
   const [showScoringPanel, setShowScoringPanel] = useState(false)
   const [mobileTab, setMobileTab] = useState<MobileTab>('document')
@@ -71,15 +71,49 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
     })
   }, [essay, initFromEssay])
 
-  // ── Ctrl+Z / Cmd+Z keyboard shortcut for undo ─────────────────────────────
+  // ── Keyboard shortcuts ─────────────────────────────────────────────────────
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      // Skip if user is typing in an input or editable area
+      const tag = (e.target as HTMLElement).tagName
+      if (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA' ||
+        (e.target as HTMLElement).isContentEditable
+      ) return
+
+      // Ctrl+Z / Cmd+Z — undo
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault()
         undo()
+        return
+      }
+
+      // Single-key tool shortcuts (no modifier)
+      if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+        switch (e.key.toLowerCase()) {
+          case 'e':
+            // Toggle error mode
+            if (!isErrorMode) {
+              setIsErrorMode(true)
+              setTool('pan')
+            } else {
+              setIsErrorMode(false)
+              setSelectedErrorCode(null)
+            }
+            break
+          case 'd': setTool('freehand'); if (isErrorMode) { setIsErrorMode(false); setSelectedErrorCode(null) }; break
+          case 't': setTool('textbox'); if (isErrorMode) { setIsErrorMode(false); setSelectedErrorCode(null) }; break
+          case 'a': setTool('arrow');   if (isErrorMode) { setIsErrorMode(false); setSelectedErrorCode(null) }; break
+          case 'v': setTool('pan');     if (isErrorMode) { setIsErrorMode(false); setSelectedErrorCode(null) }; break
+          case 'h': setTool('highlight'); if (isErrorMode) { setIsErrorMode(false); setSelectedErrorCode(null) }; break
+          case 'm': setTool('marker');  if (isErrorMode) { setIsErrorMode(false); setSelectedErrorCode(null) }; break
+          case 'x': setTool('eraser');  if (isErrorMode) { setIsErrorMode(false); setSelectedErrorCode(null) }; break
+          case 'escape': selectAnnotation(null); break
+        }
       }
     },
-    [undo]
+    [undo, isErrorMode, setIsErrorMode, setSelectedErrorCode, setTool, selectAnnotation]
   )
 
   useEffect(() => {
