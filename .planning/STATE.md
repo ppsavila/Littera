@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Not started
-last_updated: "2026-03-28T20:40:00.000Z"
+last_updated: "2026-03-28T21:10:26.077Z"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 7
-  completed_plans: 5
+  total_plans: 10
+  completed_plans: 7
 ---
 
 # Project State
@@ -20,7 +20,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-03-28)
 
 **Core value:** O professor consegue corrigir uma redação com qualidade e velocidade — da análise à entrega do feedback ao aluno.
-**Current focus:** Phase 2 — Test Suite
+**Current focus:** Phase 03 — annotation-ux
 
 ## Current Phase
 
@@ -51,6 +51,7 @@ Status: Not started
 - [Phase 02-02]: Added vi.mock for @/lib/ai/analyze-essay + analyze-student to prevent Anthropic SDK from instantiating in jsdom (dangerouslyAllowBrowser error)
 - [Phase 02-02]: createMockSupabaseClient fixture conflates profileData/insertData — use per-table from() dispatch when both reads and inserts needed in same handler
 - [Phase 02-02]: EssayCreateSchema requires source_type field — test bodies for essays POST must include source_type: 'text'
+- [Phase 03-01]: Use CSS pointerEvents toggle on wrapper div instead of conditional React rendering to preserve Konva Stage across mode switches
 
 ## Notes
 
@@ -61,4 +62,4 @@ Status: Not started
 - [01-02] SEC-04 progress: rate limiting added to essays POST, checkout POST, student-analysis POST
 - [01-02] Pre-existing TS error in src/lib/validation/schemas.ts:42 deferred to testing phase
 - [01-03] Phase 1 fully complete — all SEC requirements verified end-to-end
-- Last session: Completed 02-02-PLAN.md (2026-03-28)
+- Last session: Completed 03-01-PLAN.md (2026-03-28)

@@ -70,12 +70,19 @@ Plans:
 
 **Requirements:** ANNO-01, ANNO-02, ANNO-03, ANNO-04
 
+**Plans:** 3 plans
+
+Plans:
+- [x] 03-01-PLAN.md — Fix TextRenderer conditional unmount bug (ANNO-01)
+- [ ] 03-02-PLAN.md — Inline text editing + ShapeControlsPanel Notion-style controls (ANNO-02, ANNO-03)
+- [ ] 03-03-PLAN.md — Optimistic saves + freehand useRef perf + keyboard shortcuts (ANNO-04)
+
 **Deliverables:**
 - Bug corrigido: selecionar ferramenta de marcar erros não apaga anotações do canvas
 - Ferramenta de texto: edição inline no canvas (sem prompt/popup do navegador)
 - Ferramentas melhoradas: painel de controle para cor/espessura/delete ao estilo Notion
 - Cursor contextual por ferramenta ativa
-- Shortcut de teclado para trocar ferramentas (E=erros, D=desenho, T=texto, A=seta)
+- Shortcut de teclado para trocar ferramentas (E=erros, D=desenho, T=texto, A=seta, X=apagar)
 
 **Success Criteria:**
 - Criar anotação de texto sem nenhum popup do navegador
@@ -130,10 +137,10 @@ Plans:
 |-------|-------|--------------|--------|
 | 1 | 3/3 | Complete    | 2026-03-28 |
 | 2 | 2/4 | In Progress|  |
-| 3 | Annotation UX | ANNO-01–04 | Pending |
+| 3 | Annotation UX | ANNO-01–04 | Planned |
 | 4 | Export Upgrade | EXP-01–05 | Pending |
 | 5 | Plans & Paywall | PLAN-01–04 | Pending |
 
 ---
 *Roadmap created: 2026-03-28*
-*Last updated: 2026-03-28 after Phase 2 planning*
+*Last updated: 2026-03-28 after Phase 3 planning*
