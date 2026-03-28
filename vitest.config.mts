@@ -9,5 +9,6 @@ export default defineConfig({
     setupFiles: ['__tests__/setup.ts'],
     unstubEnvs: true,
     passWithNoTests: true,
+    exclude: ['**/node_modules/**', '**/e2e/**'],
   },
 })
