@@ -18,9 +18,9 @@
 
 - [ ] **TEST-01**: Suite de testes de integração para fluxo de autenticação (login, signup, sessão)
 - [ ] **TEST-02**: Testes de integração para criação e análise de redação
-- [ ] **TEST-03**: Testes de enforcement de assinatura (limites diários, feature flags)
+- [x] **TEST-03**: Testes de enforcement de assinatura (limites diários, feature flags)
 - [ ] **TEST-04**: Testes de acesso ao Supabase (tenant isolation — professor A não acessa dados do B)
-- [ ] **TEST-05**: Testes de segurança básicos (auth bypass, acesso direto a API sem token)
+- [x] **TEST-05**: Testes de segurança básicos (auth bypass, acesso direto a API sem token)
 
 ### Annotation UX
 

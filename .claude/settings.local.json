@@ -28,7 +28,14 @@
       "Bash(node -e \"const p=require\\(''./package.json''\\); const all={...p.dependencies,...p.devDependencies}; console.log\\(''sentry:'', Object.keys\\(all\\).filter\\(k=>k.includes\\(''sentry''\\)\\)\\); console.log\\(''ci files exist:'', require\\(''fs''\\).existsSync\\(''.github/workflows''\\)\\)\")",
       "Bash(node -e \"const p=require\\(''./package.json''\\); console.log\\(''next:'', p.dependencies.next\\); console.log\\(''node:'', process.version\\)\")",
       "Bash(node -e \"const {captureRequestError}=require\\(''@sentry/nextjs''\\); console.log\\(captureRequestError.length\\)\")",
-      "Bash(node \".claude/get-shit-done/bin/gsd-tools.cjs\" state advance-plan)"
+      "Bash(node \".claude/get-shit-done/bin/gsd-tools.cjs\" state advance-plan)",
+      "Bash(node .claude/get-shit-done/bin/gsd-tools.cjs frontmatter validate .planning/phases/02-test-suite/02-01-PLAN.md --schema plan)",
+      "Bash(node .claude/get-shit-done/bin/gsd-tools.cjs frontmatter validate .planning/phases/02-test-suite/02-02-PLAN.md --schema plan)",
+      "Bash(node .claude/get-shit-done/bin/gsd-tools.cjs frontmatter validate .planning/phases/02-test-suite/02-03-PLAN.md --schema plan)",
+      "Bash(node .claude/get-shit-done/bin/gsd-tools.cjs frontmatter validate .planning/phases/02-test-suite/02-04-PLAN.md --schema plan)",
+      "Bash(node .claude/get-shit-done/bin/gsd-tools.cjs verify plan-structure .planning/phases/02-test-suite/02-01-PLAN.md)",
+      "Bash(node .claude/get-shit-done/bin/gsd-tools.cjs verify plan-structure .planning/phases/02-test-suite/02-04-PLAN.md)",
+      "Bash(npx vitest:*)"
     ]
   }
 }
