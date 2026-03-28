@@ -24,7 +24,7 @@
 
 ### Annotation UX
 
-- [ ] **ANNO-01**: Bug corrigido — ferramenta de marcar erros não apaga anotações anteriores
+- [x] **ANNO-01**: Bug corrigido — ferramenta de marcar erros não apaga anotações anteriores
 - [ ] **ANNO-02**: Ferramenta de texto inline (sem popup do navegador, edição no canvas)
 - [ ] **ANNO-03**: Ferramentas de desenho/seta com controles estilo Notion (cor, espessura, delete)
 - [ ] **ANNO-04**: Fluidez geral do fluxo de correção (sem travamentos perceptíveis)
@@ -85,7 +85,7 @@
 | TEST-03 | Phase 2 | Pending |
 | TEST-04 | Phase 2 | Pending |
 | TEST-05 | Phase 2 | Pending |
-| ANNO-01 | Phase 3 | Pending |
+| ANNO-01 | Phase 3 | Complete |
 | ANNO-02 | Phase 3 | Pending |
 | ANNO-03 | Phase 3 | Pending |
 | ANNO-04 | Phase 3 | Pending |
