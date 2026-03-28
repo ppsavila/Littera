@@ -45,8 +45,15 @@ export function TextRenderer({ text, essayId }: Props) {
         // data attr so ErrorMarkerLayer can identify this container
         data-essay-page="1"
       >
-        {/* Annotation canvas (hidden when error mode) */}
-        {!isErrorMode && (
+        {/* Annotation canvas — always mounted; pointer-events toggled via CSS in error mode */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: isErrorMode ? 'none' : 'auto',
+            zIndex: isErrorMode ? 0 : 1,
+          }}
+        >
           <AnnotationCanvas
             essayId={essayId}
             pageNumber={1}
@@ -55,7 +62,7 @@ export function TextRenderer({ text, essayId }: Props) {
             naturalWidth={PAGE_WIDTH}
             naturalHeight={height}
           />
-        )}
+        </div>
 
         {/* Text — selectable in error mode, pointer-events off otherwise */}
         <div

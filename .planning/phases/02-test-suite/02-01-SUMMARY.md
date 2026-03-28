@@ -85,7 +85,7 @@ Each task was committed atomically:
 1. **Task 1: Install test dependencies and create config files** - `4c7bb5c` (chore)
 2. **Task 2: Create shared test fixtures and CI test job** - `95ebf08` (feat)
 
-**Plan metadata:** (docs commit — see below)
+**Plan metadata:** `e39ff2a` (docs: complete test infrastructure setup plan)
 
 ## Files Created/Modified
 

@@ -40,11 +40,11 @@ Plans:
 
 **Requirements:** TEST-01, TEST-02, TEST-03, TEST-04, TEST-05
 
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 - [x] 02-01-PLAN.md — Install Vitest + Playwright, create config files, shared fixtures, CI test job
-- [ ] 02-02-PLAN.md — Security sweep (401 on all protected routes) + subscription enforcement tests (TEST-05, TEST-03)
+- [x] 02-02-PLAN.md — Security sweep (401 on all protected routes) + subscription enforcement tests (TEST-05, TEST-03)
 - [ ] 02-03-PLAN.md — Essay CRUD integration tests + Zod schema unit tests (TEST-02)
 - [ ] 02-04-PLAN.md — Playwright e2e auth flows + tenant isolation tests (TEST-01, TEST-04)
 
@@ -129,7 +129,7 @@ Plans:
 | Phase | Focus | Requirements | Status |
 |-------|-------|--------------|--------|
 | 1 | 3/3 | Complete    | 2026-03-28 |
-| 2 | 1/4 | In Progress|  |
+| 2 | 2/4 | In Progress|  |
 | 3 | Annotation UX | ANNO-01–04 | Pending |
 | 4 | Export Upgrade | EXP-01–05 | Pending |
 | 5 | Plans & Paywall | PLAN-01–04 | Pending |
