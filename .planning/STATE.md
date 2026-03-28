@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Not started
-last_updated: "2026-03-28T15:11:22.619Z"
+last_updated: "2026-03-28T20:27:23.564Z"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 7
+  completed_plans: 4
 ---
 
 # Project State
@@ -20,7 +20,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-03-28)
 
 **Core value:** O professor consegue corrigir uma redação com qualidade e velocidade — da análise à entrega do feedback ao aluno.
-**Current focus:** Phase 2 — Testing Foundation
+**Current focus:** Phase 2 — Test Suite
 
 ## Current Phase
 
@@ -46,6 +46,8 @@ Status: Not started
 - [01-03] SEC-06: API routes correctly use per-handler auth checks — proxy intentionally excludes /api/* to allow webhook HMAC auth
 - [01-03] SEC-02: Git history confirmed clean — no key rotation required
 - [01-03] SEC-01: All 6 Supabase tables confirmed RLS-enabled on live database — migrations applied correctly
+- [Phase 02-01]: Added passWithNoTests: true to vitest.config.mts so npm test exits 0 with empty test suite — required for CI before any tests are written
+- [Phase 02-01]: Used git add -f for .github/workflows/ci.yml because .github is gitignored in this worktree
 
 ## Notes
 
