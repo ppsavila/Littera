@@ -75,7 +75,7 @@ Plans:
 Plans:
 - [x] 03-01-PLAN.md — Fix TextRenderer conditional unmount bug (ANNO-01)
 - [x] 03-02-PLAN.md — Inline text editing + ShapeControlsPanel Notion-style controls (ANNO-02, ANNO-03)
-- [ ] 03-03-PLAN.md — Optimistic saves + freehand useRef perf + keyboard shortcuts (ANNO-04)
+- [x] 03-03-PLAN.md — Optimistic saves + freehand useRef perf + keyboard shortcuts (ANNO-04)
 
 **Deliverables:**
 - Bug corrigido: selecionar ferramenta de marcar erros não apaga anotações do canvas
