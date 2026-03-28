@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { NextResponse } from 'next/server'
 import { checkAndIncrementDailyLimit } from '@/lib/subscriptions/access'
 import { PLANS, type Plan } from '@/lib/subscriptions/plans'
+import { parseJsonBody, EssayCreateSchema } from '@/lib/validation/schemas'
 
 const ESSAY_CREATE_RATE_MAX = 20
 const ESSAY_CREATE_RATE_WINDOW_MS = 60 * 60 * 1000 // 1 hour
@@ -55,21 +56,18 @@ export async function POST(request: Request) {
     )
   }
 
-  const body = await request.json()
+  const parsed = await parseJsonBody(request)
+  if ('error' in parsed) return NextResponse.json({ error: parsed.error }, { status: 400 })
 
-  const ALLOWED_FIELDS = [
-    'student_id', 'title', 'source_type',
-    'storage_path', 'raw_text', 'theme', 'status',
-  ] as const
-
-  const sanitized: Record<string, unknown> = { teacher_id: user.id }
-  for (const key of ALLOWED_FIELDS) {
-    if (key in body) sanitized[key] = body[key]
+  const result = EssayCreateSchema.safeParse(parsed.data)
+  if (!result.success) {
+    return NextResponse.json(
+      { error: 'Validation failed', issues: result.error.flatten().fieldErrors },
+      { status: 400 }
+    )
   }
 
-  if (!sanitized.title || !sanitized.source_type) {
-    return NextResponse.json({ error: 'title and source_type are required' }, { status: 400 })
-  }
+  const sanitized: Record<string, unknown> = { teacher_id: user.id, ...result.data }
 
   const { data: essay, error } = await supabase
     .from('essays')

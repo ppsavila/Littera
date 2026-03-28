@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { NextResponse } from 'next/server'
 import { PLANS, type Plan } from '@/lib/subscriptions/plans'
 import { logger } from '@/lib/logger'
+import { parseJsonBody, SubscriptionCheckoutSchema } from '@/lib/validation/schemas'
 
 const ABACATE_API_KEY = process.env.ABACATE_PAY_API_KEY
 const ABACATE_API_URL = 'https://api.abacatepay.com/v1'
@@ -33,14 +34,21 @@ export async function POST(request: Request) {
     )
   }
 
-  const { plan, taxId } = await request.json() as { plan: Plan; taxId: string }
+  const parsed = await parseJsonBody(request)
+  if ('error' in parsed) return NextResponse.json({ error: parsed.error }, { status: 400 })
 
-  if (!plan || plan === 'free') {
-    return NextResponse.json({ error: 'Plano inválido' }, { status: 400 })
+  const result = SubscriptionCheckoutSchema.safeParse(parsed.data)
+  if (!result.success) {
+    return NextResponse.json(
+      { error: 'Validation failed', issues: result.error.flatten().fieldErrors },
+      { status: 400 }
+    )
   }
 
+  const { plan, taxId } = result.data
+
   // Validate CPF: strip formatting, must be 11 digits with valid check digits
-  const cpfDigits = (taxId ?? '').replace(/\D/g, '')
+  const cpfDigits = taxId.replace(/\D/g, '')
   if (!isValidCpf(cpfDigits)) {
     return NextResponse.json({ error: 'CPF inválido. Verifique e tente novamente.' }, { status: 400 })
   }

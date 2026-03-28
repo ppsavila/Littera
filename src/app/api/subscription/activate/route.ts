@@ -1,17 +1,25 @@
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { NextResponse } from 'next/server'
-import { PLANS, type Plan } from '@/lib/subscriptions/plans'
+import { parseJsonBody, SubscriptionActivateSchema } from '@/lib/validation/schemas'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { plan } = await request.json() as { plan: Plan }
-  if (!plan || plan === 'free' || !PLANS[plan]) {
-    return NextResponse.json({ error: 'Plano inválido' }, { status: 400 })
+  const parsed = await parseJsonBody(request)
+  if ('error' in parsed) return NextResponse.json({ error: parsed.error }, { status: 400 })
+
+  const result = SubscriptionActivateSchema.safeParse(parsed.data)
+  if (!result.success) {
+    return NextResponse.json(
+      { error: 'Validation failed', issues: result.error.flatten().fieldErrors },
+      { status: 400 }
+    )
   }
+
+  const { plan } = result.data
 
   const db = createServiceClient()
 
