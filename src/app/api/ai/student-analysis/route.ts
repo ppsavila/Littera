@@ -1,8 +1,22 @@
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { NextResponse } from 'next/server'
 import { canUseFeature } from '@/lib/subscriptions/access'
 import { analyzeStudentProgress } from '@/lib/ai/analyze-student'
 import { logger } from '@/lib/logger'
+
+const STUDENT_ANALYSIS_RATE_MAX = 5
+const STUDENT_ANALYSIS_RATE_WINDOW_MS = 10 * 60 * 1000 // 10 min
+
+async function checkStudentAnalysisRateLimit(userId: string): Promise<boolean> {
+  const db = createServiceClient()
+  const { data } = await db.rpc('check_ai_rate_limit', {
+    p_user_id: userId,
+    p_max: STUDENT_ANALYSIS_RATE_MAX,
+    p_window_ms: STUDENT_ANALYSIS_RATE_WINDOW_MS,
+  })
+  return data === true
+}
 
 /**
  * POST /api/ai/student-analysis
@@ -22,6 +36,13 @@ export async function POST(request: Request) {
         upgrade: 'premium',
       },
       { status: 403 }
+    )
+  }
+
+  if (!(await checkStudentAnalysisRateLimit(user.id))) {
+    return NextResponse.json(
+      { error: 'Limite de análises atingido. Tente novamente em 10 minutos.' },
+      { status: 429 }
     )
   }
 
