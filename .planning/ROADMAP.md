@@ -12,12 +12,12 @@
 
 **Requirements:** SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-06
 
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 01-01-PLAN.md — Zod input validation + safe JSON parsing on all API routes (SEC-05)
+- [x] 01-01-PLAN.md — Zod input validation + safe JSON parsing on all API routes (SEC-05)
 - [x] 01-02-PLAN.md — Rate limiting on unprotected endpoints + CSP Sentry fix (SEC-03, SEC-04)
-- [ ] 01-03-PLAN.md — RLS verification, git secrets audit, auth coverage confirmation (SEC-01, SEC-02, SEC-06)
+- [x] 01-03-PLAN.md — RLS verification, git secrets audit, auth coverage confirmation (SEC-01, SEC-02, SEC-06)
 
 **Deliverables:**
 - RLS habilitado e políticas configuradas em todas as tabelas Supabase (`essays`, `students`, `profiles`, `subscriptions`, etc.)
@@ -120,7 +120,7 @@ Plans:
 
 | Phase | Focus | Requirements | Status |
 |-------|-------|--------------|--------|
-| 1 | 1/3 | In Progress|  |
+| 1 | 3/3 | Complete    | 2026-03-28 |
 | 2 | Test Suite | TEST-01–05 | Pending |
 | 3 | Annotation UX | ANNO-01–04 | Pending |
 | 4 | Export Upgrade | EXP-01–05 | Pending |

@@ -7,12 +7,12 @@
 
 ### Security
 
-- [ ] **SEC-01**: Todas as tabelas Supabase com RLS habilitado e políticas corretas por user_id
-- [ ] **SEC-02**: Nenhuma chave de API ou secret exposto no histórico git
+- [x] **SEC-01**: Todas as tabelas Supabase com RLS habilitado e políticas corretas por user_id
+- [x] **SEC-02**: Nenhuma chave de API ou secret exposto no histórico git
 - [x] **SEC-03**: Headers de segurança HTTP configurados (CSP, X-Frame-Options, etc.)
 - [x] **SEC-04**: Rate limiting nas rotas de API críticas (analyze, login)
-- [ ] **SEC-05**: Validação de input em todos os endpoints (sem injeção possível)
-- [ ] **SEC-06**: Middleware de autenticação cobre todas as rotas protegidas
+- [x] **SEC-05**: Validação de input em todos os endpoints (sem injeção possível)
+- [x] **SEC-06**: Middleware de autenticação cobre todas as rotas protegidas
 
 ### Testing
 
@@ -74,12 +74,12 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEC-01 | Phase 1 | Pending |
-| SEC-02 | Phase 1 | Pending |
+| SEC-01 | Phase 1 | Complete |
+| SEC-02 | Phase 1 | Complete |
 | SEC-03 | Phase 1 | Complete |
 | SEC-04 | Phase 1 | Complete |
-| SEC-05 | Phase 1 | Pending |
-| SEC-06 | Phase 1 | Pending |
+| SEC-05 | Phase 1 | Complete |
+| SEC-06 | Phase 1 | Complete |
 | TEST-01 | Phase 2 | Pending |
 | TEST-02 | Phase 2 | Pending |
 | TEST-03 | Phase 2 | Pending |
