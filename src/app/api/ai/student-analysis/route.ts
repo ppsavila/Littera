@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { canUseFeature } from '@/lib/subscriptions/access'
 import { analyzeStudentProgress } from '@/lib/ai/analyze-student'
 import { logger } from '@/lib/logger'
+import { parseJsonBody, StudentAnalysisSchema } from '@/lib/validation/schemas'
 
 const STUDENT_ANALYSIS_RATE_MAX = 5
 const STUDENT_ANALYSIS_RATE_WINDOW_MS = 10 * 60 * 1000 // 10 min
@@ -46,8 +47,18 @@ export async function POST(request: Request) {
     )
   }
 
-  const { studentId } = await request.json()
-  if (!studentId) return NextResponse.json({ error: 'studentId is required' }, { status: 400 })
+  const parsed = await parseJsonBody(request)
+  if ('error' in parsed) return NextResponse.json({ error: parsed.error }, { status: 400 })
+
+  const result = StudentAnalysisSchema.safeParse(parsed.data)
+  if (!result.success) {
+    return NextResponse.json(
+      { error: 'Validation failed', issues: result.error.flatten().fieldErrors },
+      { status: 400 }
+    )
+  }
+
+  const { studentId } = result.data
 
   const { data: student } = await supabase
     .from('students')

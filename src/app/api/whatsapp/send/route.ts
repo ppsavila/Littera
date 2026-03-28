@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { canUseFeature } from '@/lib/subscriptions/access'
+import { parseJsonBody, WhatsappSendSchema } from '@/lib/validation/schemas'
 
 /**
  * POST /api/whatsapp/send
@@ -24,9 +25,18 @@ export async function POST(request: Request) {
     )
   }
 
-  const { essayId, phone, message } = await request.json()
-  if (!essayId) return NextResponse.json({ error: 'essayId is required' }, { status: 400 })
-  if (!phone) return NextResponse.json({ error: 'phone is required' }, { status: 400 })
+  const parsed = await parseJsonBody(request)
+  if ('error' in parsed) return NextResponse.json({ error: parsed.error }, { status: 400 })
+
+  const result = WhatsappSendSchema.safeParse(parsed.data)
+  if (!result.success) {
+    return NextResponse.json(
+      { error: 'Validation failed', issues: result.error.flatten().fieldErrors },
+      { status: 400 }
+    )
+  }
+
+  const { essayId, phone, message } = result.data
 
   const { data: essay } = await supabase
     .from('essays')

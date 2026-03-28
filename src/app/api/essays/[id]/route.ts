@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { parseJsonBody, EssayUpdateSchema } from '@/lib/validation/schemas'
 
 export async function PATCH(
   request: Request,
@@ -11,24 +12,18 @@ export async function PATCH(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await request.json()
+  const parsed = await parseJsonBody(request)
+  if ('error' in parsed) return NextResponse.json({ error: parsed.error }, { status: 400 })
 
-  // Whitelist allowed fields to prevent mass assignment
-  const ALLOWED_FIELDS = [
-    'title', 'theme', 'status', 'raw_text',
-    'score_c1', 'score_c2', 'score_c3', 'score_c4', 'score_c5',
-    'notes_c1', 'notes_c2', 'notes_c3', 'notes_c4', 'notes_c5',
-    'general_comment', 'ai_analysis',
-  ] as const
-
-  const sanitized: Record<string, unknown> = {}
-  for (const key of ALLOWED_FIELDS) {
-    if (key in body) sanitized[key] = body[key]
+  const result = EssayUpdateSchema.safeParse(parsed.data)
+  if (!result.success) {
+    return NextResponse.json(
+      { error: 'Validation failed', issues: result.error.flatten().fieldErrors },
+      { status: 400 }
+    )
   }
 
-  if (Object.keys(sanitized).length === 0) {
-    return NextResponse.json({ error: 'No valid fields provided' }, { status: 400 })
-  }
+  const sanitized = result.data
 
   const { data, error } = await supabase
     .from('essays')
