@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Not started
-last_updated: "2026-03-28T21:10:26.077Z"
+last_updated: "2026-03-28T21:14:34.490Z"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 10
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -52,6 +52,8 @@ Status: Not started
 - [Phase 02-02]: createMockSupabaseClient fixture conflates profileData/insertData — use per-table from() dispatch when both reads and inserts needed in same handler
 - [Phase 02-02]: EssayCreateSchema requires source_type field — test bodies for essays POST must include source_type: 'text'
 - [Phase 03-01]: Use CSS pointerEvents toggle on wrapper div instead of conditional React rendering to preserve Konva Stage across mode switches
+- [Phase 03-02]: No undo history for color changes — undoing a recolor with Ctrl+Z would be confusing UX
+- [Phase 03-02]: ShapeControlsPanel creates its own Supabase client — no essayId prop needed, annotationId sufficient for DB updates
 
 ## Notes
 
@@ -62,4 +64,4 @@ Status: Not started
 - [01-02] SEC-04 progress: rate limiting added to essays POST, checkout POST, student-analysis POST
 - [01-02] Pre-existing TS error in src/lib/validation/schemas.ts:42 deferred to testing phase
 - [01-03] Phase 1 fully complete — all SEC requirements verified end-to-end
-- Last session: Completed 03-01-PLAN.md (2026-03-28)
+- Last session: Completed 03-02-PLAN.md (2026-03-28)
