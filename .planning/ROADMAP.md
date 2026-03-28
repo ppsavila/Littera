@@ -40,6 +40,14 @@ Plans:
 
 **Requirements:** TEST-01, TEST-02, TEST-03, TEST-04, TEST-05
 
+**Plans:** 4 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Install Vitest + Playwright, create config files, shared fixtures, CI test job
+- [ ] 02-02-PLAN.md — Security sweep (401 on all protected routes) + subscription enforcement tests (TEST-05, TEST-03)
+- [ ] 02-03-PLAN.md — Essay CRUD integration tests + Zod schema unit tests (TEST-02)
+- [ ] 02-04-PLAN.md — Playwright e2e auth flows + tenant isolation tests (TEST-01, TEST-04)
+
 **Deliverables:**
 - Framework de testes configurado (Playwright para e2e + Vitest para integração)
 - Testes de autenticação: login, logout, signup, sessão persistente, token expirado
@@ -128,4 +136,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-03-28*
-*Last updated: 2026-03-28 after Phase 1 planning*
+*Last updated: 2026-03-28 after Phase 2 planning*
