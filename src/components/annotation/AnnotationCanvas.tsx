@@ -41,6 +41,7 @@ export function AnnotationCanvas({
     selectedId,
     addAnnotation,
     removeAnnotation,
+    replaceAnnotation,
     selectAnnotation,
   } = useAnnotationStore()
 
@@ -50,6 +51,8 @@ export function AnnotationCanvas({
     startY: 0,
     currentPoints: [],
   })
+
+  const pointsRef = useRef<number[]>([])
 
   const [popover, setPopover] = useState<{
     visible: boolean
@@ -95,6 +98,23 @@ export function AnnotationCanvas({
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
+    const tempId = crypto.randomUUID()
+    const optimistic: Annotation = {
+      id: tempId,
+      essay_id: essayId,
+      teacher_id: user.id,
+      page_number: pageNumber,
+      type,
+      shape_data: { ...shapeData, normalized: true },
+      comment: null,
+      competency: activeCompetency,
+      color: activeColor,
+      created_at: new Date().toISOString(),
+    }
+    // Immediate visual feedback
+    addAnnotation(optimistic)
+
+    // Persist in background
     const { data, error } = await supabase
       .from('annotations')
       .insert({
@@ -110,7 +130,10 @@ export function AnnotationCanvas({
       .single()
 
     if (!error && data) {
-      addAnnotation(data as Annotation)
+      replaceAnnotation(tempId, data as Annotation, pageNumber)
+    } else {
+      // Roll back on failure
+      removeAnnotation(tempId, pageNumber)
     }
   }
 
@@ -130,6 +153,7 @@ export function AnnotationCanvas({
     if (activeTool === 'pan') return
     if (e.target !== e.target.getStage() && activeTool !== 'eraser') return
 
+    pointsRef.current = []
     const { x, y } = getRelativePos(e)
     selectAnnotation(null)
     setPopover(null)
@@ -142,10 +166,11 @@ export function AnnotationCanvas({
     const { x, y } = getRelativePos(e)
 
     if (activeTool === 'freehand') {
-      setDrawing((d) => ({
-        ...d,
-        currentPoints: [...d.currentPoints, x, y],
-      }))
+      pointsRef.current.push(x, y)
+      // Update React state only every 4 points for preview rendering
+      if (pointsRef.current.length % 8 === 0) {
+        setDrawing((d) => ({ ...d, currentPoints: [...pointsRef.current] }))
+      }
     } else {
       setDrawing((d) => ({ ...d, currentPoints: [d.startX, d.startY, x, y] }))
     }
@@ -181,13 +206,15 @@ export function AnnotationCanvas({
       }
 
       case 'freehand': {
-        if (currentPoints.length < 4) return
+        const pts = pointsRef.current.length >= 4 ? pointsRef.current : currentPoints
+        if (pts.length < 4) break
         await saveAnnotation({
-          points: normalizePoints(currentPoints),
+          points: normalizePoints(pts),
           stroke: activeColor,
           strokeWidth,
           opacity: 1,
         }, 'freehand')
+        pointsRef.current = []
         break
       }
 

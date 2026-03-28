@@ -27,6 +27,7 @@ interface AnnotationState {
   removeAnnotation: (id: string, page: number) => void
   updateAnnotationComment: (id: string, comment: string, page: number) => void
   updateAnnotationColor: (id: string, color: string, page: number) => void
+  replaceAnnotation: (tempId: string, real: Annotation, page: number) => void
   selectAnnotation: (id: string | null) => void
 
   undo: () => void
@@ -148,6 +149,17 @@ export const useAnnotationStore = create<AnnotationState>((set, get) => ({
                 }
               : a
           ),
+        },
+      }
+    }),
+
+  replaceAnnotation: (tempId, real, page) =>
+    set((state) => {
+      const current = state.annotations[page] ?? []
+      return {
+        annotations: {
+          ...state.annotations,
+          [page]: current.map((a) => (a.id === tempId ? real : a)),
         },
       }
     }),
