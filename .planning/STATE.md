@@ -65,6 +65,9 @@ Status: Complete — Plan 04-01 and 04-02 complete (2/2 plans done)
 - [04-02]: handleWhatsApp fallback opens text-only wa.me if upload fails — no crash for Premium users
 - [Phase 05-01]: onboarded defaults false for ALL users so existing users see plan comparison once on next login
 - [Phase 05-01]: WelcomeModalTrigger uses useEffect to open on mount, PATCH fires only on handleClose to avoid marking onboarded before user dismisses
+- [Phase 05-02]: 403 and 429 short-circuit before response body parse in handleAnalyze to avoid double-read bug
+- [Phase 05-02]: canStudentInsights resolved in Promise.all alongside students query to minimize server round-trips
+- [Phase 05-02]: WorkspaceHeader UpgradeModal rendered inline after the WhatsApp button — z-index works with sticky header at z-[60]
 
 ## Notes
 
@@ -75,4 +78,4 @@ Status: Complete — Plan 04-01 and 04-02 complete (2/2 plans done)
 - [01-02] SEC-04 progress: rate limiting added to essays POST, checkout POST, student-analysis POST
 - [01-02] Pre-existing TS error in src/lib/validation/schemas.ts:42 deferred to testing phase
 - [01-03] Phase 1 fully complete — all SEC requirements verified end-to-end
-- Last session: Completed 04-02-PLAN.md (2026-03-28)
+- Last session: Completed 05-02-PLAN.md (2026-03-29)
