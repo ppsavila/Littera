@@ -21,11 +21,12 @@ interface Props {
   initialAnnotations: Annotation[]
   initialErrorMarkers: ErrorMarker[]
   canWhatsApp: boolean
+  canAiAnalysis: boolean
 }
 
 type MobileTab = 'document' | 'scoring'
 
-export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMarkers, canWhatsApp }: Props) {
+export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMarkers, canWhatsApp, canAiAnalysis }: Props) {
   const { setAnnotations, undo, selectAnnotation, setTool } = useAnnotationStore()
   const { initFromEssay } = useScoringStore()
   const { setMarkers, isErrorMode, setIsErrorMode, setSelectedErrorCode } = useErrorMarkerStore()
@@ -154,7 +155,7 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
         {/* Right: annotation sidebar + scoring panel */}
         <div className="flex flex-shrink-0">
           {showAnnotationSidebar && <AnnotationSidebar essayId={essay.id} />}
-          {showScoringPanel && <ScoringPanel essay={essay} />}
+          {showScoringPanel && <ScoringPanel essay={essay} canAiAnalysis={canAiAnalysis} />}
         </div>
       </div>
 
@@ -220,7 +221,7 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
                 ['--scoring-panel-width' as string]: '100%',
               }}
             >
-              <ScoringPanelMobileWrapper essay={essay} />
+              <ScoringPanelMobileWrapper essay={essay} canAiAnalysis={canAiAnalysis} />
             </div>
           </div>
         )}
@@ -233,13 +234,13 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
  * Thin wrapper that renders ScoringPanel full-width on mobile.
  * The panel itself uses `w-80` which we need to override.
  */
-function ScoringPanelMobileWrapper({ essay }: { essay: Essay }) {
+function ScoringPanelMobileWrapper({ essay, canAiAnalysis }: { essay: Essay; canAiAnalysis: boolean }) {
   return (
     <div
       className="h-full overflow-hidden flex flex-col"
       style={{ width: '100%' }}
     >
-      <ScoringPanel essay={essay} fullWidth />
+      <ScoringPanel essay={essay} fullWidth canAiAnalysis={canAiAnalysis} />
     </div>
   )
 }
