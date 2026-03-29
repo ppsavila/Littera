@@ -4,6 +4,7 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { getUserUsageInfo } from '@/lib/subscriptions/access'
+import { WelcomeModalTrigger } from '@/components/subscription/WelcomeModalTrigger'
 
 export default async function DashboardLayout({
   children,
@@ -16,6 +17,12 @@ export default async function DashboardLayout({
   if (!user) redirect('/login')
 
   const usageInfo = await getUserUsageInfo(user.id)
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('onboarded')
+    .eq('id', user.id)
+    .single()
 
   return (
     <div
@@ -41,6 +48,9 @@ export default async function DashboardLayout({
 
       {/* Mobile bottom nav */}
       <BottomNav />
+
+      {/* Welcome modal for new users */}
+      <WelcomeModalTrigger onboarded={profile?.onboarded ?? false} currentPlan={usageInfo.plan} />
     </div>
   )
 }
