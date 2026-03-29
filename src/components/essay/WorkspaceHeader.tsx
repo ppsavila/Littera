@@ -2,8 +2,12 @@
 
 import Link from 'next/link'
 import { ArrowLeft, List, BarChart2, CheckCircle, Loader2, MessageCircle } from 'lucide-react'
-import { ExportPDFButton } from './ExportPDFButton'
+import { ExportPDFButton, generatePdfBytes } from './ExportPDFButton'
+import { uploadExportedPdf } from '@/lib/export/uploadExportedPdf'
 import { useScoringStore } from '@/stores/scoringStore'
+import { useErrorMarkerStore } from '@/stores/errorMarkerStore'
+import { useAnnotationStore } from '@/stores/annotationStore'
+import { useViewerStore } from '@/stores/viewerStore'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
@@ -48,11 +52,38 @@ function buildWhatsAppText(essay: Essay, scores: CompScores, notes: CompNotes, g
 
 export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, onToggleScoring, showScoring, canWhatsApp }: Props) {
   const { scores, notes, generalComment, markClean, isDirty } = useScoringStore()
+  const { markers } = useErrorMarkerStore()
+  const { annotations } = useAnnotationStore()
+  const { totalPages } = useViewerStore()
   const [saving, setSaving] = useState(false)
   const [autoSaved, setAutoSaved] = useState(false)
+  const [sendingWA, setSendingWA] = useState(false)
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const supabase = createClient()
   const router = useRouter()
+
+  async function handleWhatsApp() {
+    setSendingWA(true)
+    try {
+      const total = (scores.c1 ?? 0) + (scores.c2 ?? 0) + (scores.c3 ?? 0) + (scores.c4 ?? 0) + (scores.c5 ?? 0)
+      const bytes = await generatePdfBytes(
+        essay, scores, notes, generalComment, total, markers, annotations, totalPages,
+      )
+      const pdfUrl = await uploadExportedPdf(essay.id, bytes)
+      const text = buildWhatsAppText(essay, scores, notes, generalComment)
+      const message = pdfUrl
+        ? `${text}\n\nPDF da correcao: ${pdfUrl}`
+        : text
+      window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
+    } catch (err) {
+      console.error('WhatsApp share failed:', err)
+      // Fallback: send text-only
+      const text = buildWhatsAppText(essay, scores, notes, generalComment)
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+    } finally {
+      setSendingWA(false)
+    }
+  }
 
   // Autosave scoring data 3 seconds after any change
   useEffect(() => {
@@ -194,21 +225,22 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
 
         {/* WhatsApp — Premium */}
         {canWhatsApp && (
-          <a
-            href={`https://wa.me/?text=${encodeURIComponent(buildWhatsAppText(essay, scores, notes, generalComment))}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={handleWhatsApp}
+            disabled={sendingWA}
             className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
             style={{
               background: '#f0fdf4',
               color: '#16a34a',
               border: '1px solid #bbf7d0',
+              opacity: sendingWA ? 0.7 : 1,
+              cursor: sendingWA ? 'not-allowed' : 'pointer',
             }}
-            title="Enviar correção via WhatsApp"
+            title="Enviar correcao via WhatsApp"
           >
-            <MessageCircle className="w-3.5 h-3.5" />
-            WhatsApp
-          </a>
+            {sendingWA ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageCircle className="w-3.5 h-3.5" />}
+            {sendingWA ? 'Enviando...' : 'WhatsApp'}
+          </button>
         )}
 
         {/* Export PDF */}
