@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Not started
-last_updated: "2026-03-28T21:25:19.838Z"
+last_updated: "2026-03-29T01:54:54.016Z"
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 10
-  completed_plans: 9
+  total_plans: 12
+  completed_plans: 10
 ---
 
 # Project State
@@ -20,15 +20,15 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-03-28)
 
 **Core value:** O professor consegue corrigir uma redação com qualidade e velocidade — da análise à entrega do feedback ao aluno.
-**Current focus:** Phase 02 — test-suite
+**Current focus:** Phase 04 — export-upgrade
 
 ## Current Phase
 
-**Phase 2 — Testing Foundation**
+**Phase 4 — Export Upgrade**
 
-Goal: Establish test coverage for the secured codebase.
+Goal: Fix PDF export for text-type essays and enhance scoring page layout.
 
-Status: Not started
+Status: In progress — Plan 04-01 complete (1/1 plan done so far)
 
 ## Completed Phases
 
@@ -57,6 +57,9 @@ Status: Not started
 - [Phase 03-03]: replaceAnnotation does not push to undo history — swapping tempId for real DB id is not a user-undoable action
 - [Phase 03-03]: freehand preview updates every 8 points (mod 8) to balance visual feedback vs render frequency
 - [Phase 03-03]: Keyboard guard checks tagName (INPUT/TEXTAREA) + isContentEditable to cover inline text editor from 03-02
+- [04-01]: Switched from html2canvas to html-to-image — html2canvas does not support CSS lab() colors used in the app design system
+- [04-01]: Text capture registered into viewerStore.pageCanvases[1] so the existing export for-loop processes text essays identically to PDF/image essays
+- [04-01]: useViewerStore.getState() used inside handleExport loop to avoid stale render-time closure on pageCanvases
 
 ## Notes
 
@@ -67,4 +70,4 @@ Status: Not started
 - [01-02] SEC-04 progress: rate limiting added to essays POST, checkout POST, student-analysis POST
 - [01-02] Pre-existing TS error in src/lib/validation/schemas.ts:42 deferred to testing phase
 - [01-03] Phase 1 fully complete — all SEC requirements verified end-to-end
-- Last session: Completed 03-03-PLAN.md (2026-03-28)
+- Last session: Completed 04-01-PLAN.md (2026-03-28)
