@@ -18,11 +18,11 @@ export async function PATCH(request: Request) {
     )
   }
 
-  const { full_name, cellphone, school } = result.data
+  const { full_name, cellphone, school, onboarded } = result.data
 
   const { error } = await supabase
     .from('profiles')
-    .update({ full_name, cellphone, school })
+    .update({ full_name, cellphone, school, onboarded })
     .eq('id', user.id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
