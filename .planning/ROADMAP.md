@@ -97,6 +97,12 @@ Plans:
 
 **Requirements:** EXP-01, EXP-02, EXP-03, EXP-04, EXP-05
 
+**Plans:** 1/2 plans executed
+
+Plans:
+- [x] 04-01-PLAN.md — Fix text-type PDF export via html2canvas + enhanced scoring page header (EXP-01, EXP-02, EXP-03, EXP-04)
+- [ ] 04-02-PLAN.md — WhatsApp PDF sharing via Supabase Storage upload + signed URL (EXP-05)
+
 **Deliverables:**
 - PDF inclui o texto completo da redação renderizado
 - Marcações de erro visíveis no texto (highlight, sublinhado ou ícone inline)
@@ -138,9 +144,9 @@ Plans:
 | 1 | 3/3 | Complete    | 2026-03-28 |
 | 2 | 2/4 | In Progress|  |
 | 3 | Annotation UX | ANNO-01–04 | Planned |
-| 4 | Export Upgrade | EXP-01–05 | Pending |
+| 4 | 1/2 | In Progress|  |
 | 5 | Plans & Paywall | PLAN-01–04 | Pending |
 
 ---
 *Roadmap created: 2026-03-28*
-*Last updated: 2026-03-28 after Phase 3 planning*
+*Last updated: 2026-03-28 after Phase 4 planning*

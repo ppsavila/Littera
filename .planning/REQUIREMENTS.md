@@ -31,10 +31,10 @@
 
 ### Export
 
-- [ ] **EXP-01**: PDF exportado inclui o texto completo da redação
-- [ ] **EXP-02**: PDF exportado inclui marcações de erro visíveis no texto
-- [ ] **EXP-03**: PDF exportado inclui anotações do canvas (desenhos, setas, texto)
-- [ ] **EXP-04**: Layout do PDF formatado e legível para o aluno
+- [x] **EXP-01**: PDF exportado inclui o texto completo da redação
+- [x] **EXP-02**: PDF exportado inclui marcações de erro visíveis no texto
+- [x] **EXP-03**: PDF exportado inclui anotações do canvas (desenhos, setas, texto)
+- [x] **EXP-04**: Layout do PDF formatado e legível para o aluno
 - [ ] **EXP-05**: (Premium) Envio do PDF diretamente pelo WhatsApp
 
 ### Plans & Paywall
@@ -89,10 +89,10 @@
 | ANNO-02 | Phase 3 | Complete |
 | ANNO-03 | Phase 3 | Complete |
 | ANNO-04 | Phase 3 | Complete |
-| EXP-01 | Phase 4 | Pending |
-| EXP-02 | Phase 4 | Pending |
-| EXP-03 | Phase 4 | Pending |
-| EXP-04 | Phase 4 | Pending |
+| EXP-01 | Phase 4 | Complete |
+| EXP-02 | Phase 4 | Complete |
+| EXP-03 | Phase 4 | Complete |
+| EXP-04 | Phase 4 | Complete |
 | EXP-05 | Phase 4 | Pending |
 | PLAN-01 | Phase 5 | Pending |
 | PLAN-02 | Phase 5 | Pending |
