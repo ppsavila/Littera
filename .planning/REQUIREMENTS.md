@@ -39,7 +39,7 @@
 
 ### Plans & Paywall
 
-- [ ] **PLAN-01**: Modal de boas-vindas no primeiro login mostrando benefícios dos planos
+- [x] **PLAN-01**: Modal de boas-vindas no primeiro login mostrando benefícios dos planos
 - [ ] **PLAN-02**: Paywall funcional ao atingir limite diário (bloqueia a ação)
 - [ ] **PLAN-03**: Ao bater o paywall, exibe modal de upgrade com benefícios dos planos
 - [ ] **PLAN-04**: Indicadores visuais de feature Premium no fluxo (tooltip/lock antes de usar)
@@ -94,7 +94,7 @@
 | EXP-03 | Phase 4 | Complete |
 | EXP-04 | Phase 4 | Complete |
 | EXP-05 | Phase 4 | Complete |
-| PLAN-01 | Phase 5 | Pending |
+| PLAN-01 | Phase 5 | Complete |
 | PLAN-02 | Phase 5 | Pending |
 | PLAN-03 | Phase 5 | Pending |
 | PLAN-04 | Phase 5 | Pending |

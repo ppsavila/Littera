@@ -123,10 +123,10 @@ Plans:
 
 **Requirements:** PLAN-01, PLAN-02, PLAN-03, PLAN-04
 
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
-- [ ] 05-01-PLAN.md — DB migration (onboarded column) + welcome modal on first login (PLAN-01)
+- [x] 05-01-PLAN.md — DB migration (onboarded column) + welcome modal on first login (PLAN-01)
 - [ ] 05-02-PLAN.md — FeatureLockBadge + paywall gates on AI/insights/WhatsApp (PLAN-02, PLAN-03, PLAN-04)
 - [ ] 05-03-PLAN.md — CPF collection fix in UpgradeModal + pricing page refinement (PLAN-03, PLAN-04)
 
@@ -152,7 +152,7 @@ Plans:
 | 2 | 2/4 | In Progress|  |
 | 3 | Annotation UX | ANNO-01-04 | Planned |
 | 4 | 2/2 | Complete   | 2026-03-29 |
-| 5 | Plans & Paywall | PLAN-01-04 | Planned |
+| 5 | 1/3 | In Progress|  |
 
 ---
 *Roadmap created: 2026-03-28*
