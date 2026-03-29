@@ -211,6 +211,12 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan, 
         </div>
       )}
 
+      <div className="text-center space-y-2">
+        <h2 className="font-display text-2xl sm:text-3xl font-bold" style={{ color: 'var(--littera-ink)' }}>
+          Corrija mais. Ensine melhor.
+        </h2>
+      </div>
+
       {/* Plan cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {plans.map((planId) => {
@@ -225,7 +231,7 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan, 
               className="rounded-2xl p-5 flex flex-col gap-4 relative"
               style={{
                 background: colors.bg,
-                border: `${isCurrent ? '2px' : '1px'} solid ${isCurrent ? colors.border : 'var(--littera-dust)'}`,
+                border: `${isCurrent || planId === 'plus' ? '2px' : '1px'} solid ${isCurrent ? colors.border : planId === 'plus' ? '#7c3aed' : 'var(--littera-dust)'}`,
                 boxShadow: isCurrent ? 'var(--littera-shadow)' : 'var(--littera-shadow-sm)',
               }}
             >
@@ -330,6 +336,10 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan, 
           )
         })}
       </div>
+
+      <p className="text-sm text-center" style={{ color: 'var(--littera-slate)' }}>
+        Professores no plano Plus corrigem 5× mais redacoes por semana
+      </p>
 
       {error && (
         <p className="text-sm text-center" style={{ color: 'var(--littera-rose)' }}>
