@@ -8,7 +8,7 @@ progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 12
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-03-28)
 
 Goal: Fix PDF export for text-type essays and enhance scoring page layout.
 
-Status: In progress — Plan 04-01 complete (1/1 plan done so far)
+Status: Complete — Plan 04-01 and 04-02 complete (2/2 plans done)
 
 ## Completed Phases
 
@@ -60,6 +60,9 @@ Status: In progress — Plan 04-01 complete (1/1 plan done so far)
 - [04-01]: Switched from html2canvas to html-to-image — html2canvas does not support CSS lab() colors used in the app design system
 - [04-01]: Text capture registered into viewerStore.pageCanvases[1] so the existing export for-loop processes text essays identically to PDF/image essays
 - [04-01]: useViewerStore.getState() used inside handleExport loop to avoid stale render-time closure on pageCanvases
+- [04-02]: Export path prefixed with userId (userId/exports/...) to satisfy Supabase Storage RLS policy that restricts writes to user-owned prefixes
+- [04-02]: PDF link in WhatsApp message uses plain ASCII "PDF da correcao: {url}" to avoid wa.me character limit issues
+- [04-02]: handleWhatsApp fallback opens text-only wa.me if upload fails — no crash for Premium users
 
 ## Notes
 
@@ -70,4 +73,4 @@ Status: In progress — Plan 04-01 complete (1/1 plan done so far)
 - [01-02] SEC-04 progress: rate limiting added to essays POST, checkout POST, student-analysis POST
 - [01-02] Pre-existing TS error in src/lib/validation/schemas.ts:42 deferred to testing phase
 - [01-03] Phase 1 fully complete — all SEC requirements verified end-to-end
-- Last session: Completed 04-01-PLAN.md (2026-03-28)
+- Last session: Completed 04-02-PLAN.md (2026-03-28)
