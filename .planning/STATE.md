@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-last_updated: "2026-03-29T02:25:24.497Z"
+last_updated: "2026-03-29T20:27:35.798Z"
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 12
-  completed_plans: 11
+  total_plans: 15
+  completed_plans: 12
 ---
 
 # Project State
@@ -20,7 +20,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-03-28)
 
 **Core value:** O professor consegue corrigir uma redação com qualidade e velocidade — da análise à entrega do feedback ao aluno.
-**Current focus:** Phase 04 — export-upgrade
+**Current focus:** Phase 05 — plans-paywall
 
 ## Current Phase
 
@@ -63,6 +63,8 @@ Status: Complete — Plan 04-01 and 04-02 complete (2/2 plans done)
 - [04-02]: Export path prefixed with userId (userId/exports/...) to satisfy Supabase Storage RLS policy that restricts writes to user-owned prefixes
 - [04-02]: PDF link in WhatsApp message uses plain ASCII "PDF da correcao: {url}" to avoid wa.me character limit issues
 - [04-02]: handleWhatsApp fallback opens text-only wa.me if upload fails — no crash for Premium users
+- [Phase 05-01]: onboarded defaults false for ALL users so existing users see plan comparison once on next login
+- [Phase 05-01]: WelcomeModalTrigger uses useEffect to open on mount, PATCH fires only on handleClose to avoid marking onboarded before user dismisses
 
 ## Notes
 
