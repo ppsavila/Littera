@@ -343,16 +343,15 @@ export function ExportPDFButton({ essay }: Props) {
       const { PDFDocument } = await import('pdf-lib')
       const pdf = await PDFDocument.create()
 
-      // Text-type essays: capture the HTML text container to canvas via html2canvas
+      // Text-type essays: capture the HTML text container to canvas via html-to-image
+      // (html2canvas does not support modern CSS color functions like lab() used in Littera's theme)
       if (essay.source_type === 'text' && !pageCanvases[1]) {
         const textEl = document.querySelector('[data-essay-text-container="1"]') as HTMLElement
         if (textEl) {
-          const html2canvas = (await import('html2canvas')).default
-          const captured = await html2canvas(textEl, {
-            scale: 2,
-            useCORS: true,
+          const { toCanvas } = await import('html-to-image')
+          const captured = await toCanvas(textEl, {
+            pixelRatio: 2,
             backgroundColor: '#ffffff',
-            // Use the element's scroll dimensions for full capture
             width: textEl.scrollWidth,
             height: textEl.scrollHeight,
           })
