@@ -72,7 +72,7 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
       const pdfUrl = await uploadExportedPdf(essay.id, bytes)
       const text = buildWhatsAppText(essay, scores, notes, generalComment)
       const message = pdfUrl
-        ? `${text}\n\nPDF da correcao: ${pdfUrl}`
+        ? `${text}\n\n📄 *PDF da correção:*\n${pdfUrl}`
         : text
       window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
     } catch (err) {
