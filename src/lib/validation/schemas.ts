@@ -15,11 +15,11 @@ export async function parseJsonBody(request: Request): Promise<{ data: unknown }
 export const EssayCreateSchema = z.object({
   title: z.string().min(1).max(500),
   source_type: z.enum(['pdf', 'image', 'text']),
-  student_id: z.string().uuid().optional(),
-  storage_path: z.string().max(1000).optional(),
-  raw_text: z.string().optional(),
-  theme: z.string().max(500).optional(),
-  status: z.string().max(50).optional(),
+  student_id: z.string().uuid().nullish(),
+  storage_path: z.string().max(1000).nullish(),
+  raw_text: z.string().nullish(),
+  theme: z.string().max(500).nullish(),
+  status: z.string().max(50).nullish(),
 })
 
 // PATCH /api/essays/[id]
