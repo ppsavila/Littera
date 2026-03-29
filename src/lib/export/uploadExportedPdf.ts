@@ -2,14 +2,17 @@ import { createClient } from '@/lib/supabase/client'
 
 /**
  * Upload a generated PDF to Supabase Storage and return a 7-day signed URL.
- * Files are stored under the `exports/` prefix in the `essays` bucket.
+ * Path: `<userId>/exports/<essayId>-<timestamp>.pdf` — satisfies the existing
+ * "Teachers upload own essays" RLS policy which checks (storage.foldername(name))[1] = auth.uid().
  */
 export async function uploadExportedPdf(
   essayId: string,
   pdfBytes: Uint8Array,
 ): Promise<string | null> {
   const supabase = createClient()
-  const path = `exports/${essayId}-${Date.now()}.pdf`
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+  const path = `${user.id}/exports/${essayId}-${Date.now()}.pdf`
 
   const { error } = await supabase.storage
     .from('essays')
