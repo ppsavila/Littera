@@ -103,6 +103,14 @@ None - no external service configuration required.
 - Shape controls panel is ready for use across all annotation types
 - CommentPopover still available for any future comment-focused features
 
+## Self-Check: PASSED
+
+- `src/components/annotation/ShapeControlsPanel.tsx` — FOUND
+- `src/stores/annotationStore.ts` — FOUND
+- `src/components/annotation/AnnotationCanvas.tsx` — FOUND
+- `.planning/phases/03-annotation-ux/03-02-SUMMARY.md` — FOUND
+- Commits `0a562d8`, `2796089`, `e8375d0` — FOUND
+
 ---
 *Phase: 03-annotation-ux*
 *Completed: 2026-03-28*

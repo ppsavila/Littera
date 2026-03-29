@@ -67,6 +67,7 @@ export function TextRenderer({ text, essayId }: Props) {
         {/* Text — selectable in error mode, pointer-events off otherwise */}
         <div
           ref={handleContainerRef}
+          data-essay-text-container="1"
           className="absolute inset-0 p-12 font-serif text-gray-900 leading-relaxed"
           style={{
             fontSize: 16 * zoom,
