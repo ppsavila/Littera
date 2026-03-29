@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { ArrowLeft, List, BarChart2, CheckCircle, Loader2, MessageCircle } from 'lucide-react'
 import { ExportPDFButton, generatePdfBytes } from './ExportPDFButton'
 import { uploadExportedPdf } from '@/lib/export/uploadExportedPdf'
+import { UpgradeModal } from '@/components/subscription/UpgradeModal'
+import { FeatureLockBadge } from '@/components/subscription/FeatureLockBadge'
 import { useScoringStore } from '@/stores/scoringStore'
 import { useErrorMarkerStore } from '@/stores/errorMarkerStore'
 import { useAnnotationStore } from '@/stores/annotationStore'
@@ -58,6 +60,7 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
   const [saving, setSaving] = useState(false)
   const [autoSaved, setAutoSaved] = useState(false)
   const [sendingWA, setSendingWA] = useState(false)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const supabase = createClient()
   const router = useRouter()
@@ -223,24 +226,30 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
           Notas
         </button>
 
-        {/* WhatsApp — Premium */}
-        {canWhatsApp && (
-          <button
-            onClick={handleWhatsApp}
-            disabled={sendingWA}
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
-            style={{
-              background: '#f0fdf4',
-              color: '#16a34a',
-              border: '1px solid #bbf7d0',
-              opacity: sendingWA ? 0.7 : 1,
-              cursor: sendingWA ? 'not-allowed' : 'pointer',
-            }}
-            title="Enviar correcao via WhatsApp"
-          >
-            {sendingWA ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageCircle className="w-3.5 h-3.5" />}
-            {sendingWA ? 'Enviando...' : 'WhatsApp'}
-          </button>
+        {/* WhatsApp — always visible, locked if !canWhatsApp */}
+        <button
+          onClick={canWhatsApp ? handleWhatsApp : () => setShowUpgradeModal(true)}
+          disabled={sendingWA}
+          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
+          style={{
+            background: '#f0fdf4',
+            color: '#16a34a',
+            border: '1px solid #bbf7d0',
+            opacity: sendingWA ? 0.7 : 1,
+            cursor: sendingWA ? 'not-allowed' : 'pointer',
+          }}
+          title={canWhatsApp ? 'Enviar correcao via WhatsApp' : 'Disponivel no plano Premium'}
+        >
+          {sendingWA ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageCircle className="w-3.5 h-3.5" />}
+          {sendingWA ? 'Enviando...' : 'WhatsApp'}
+          {!canWhatsApp && <FeatureLockBadge tier="premium" />}
+        </button>
+        {showUpgradeModal && (
+          <UpgradeModal
+            open={showUpgradeModal}
+            onClose={() => setShowUpgradeModal(false)}
+            reason="whatsapp"
+          />
         )}
 
         {/* Export PDF */}

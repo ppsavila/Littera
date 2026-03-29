@@ -2,12 +2,15 @@
 
 import { useState } from 'react'
 import { Sparkles, X, TrendingUp, TrendingDown, Minus, BarChart2, AlertCircle, Loader2 } from 'lucide-react'
+import { UpgradeModal } from '@/components/subscription/UpgradeModal'
+import { FeatureLockBadge } from '@/components/subscription/FeatureLockBadge'
 import type { StudentProgressAnalysis } from '@/lib/ai/analyze-student'
 
 interface Props {
   studentId: string
   studentName: string
   essayCount: number
+  canStudentInsights?: boolean
 }
 
 const TREND_ICON = {
@@ -31,13 +34,18 @@ const TREND_LABEL = {
   mixed: 'Desempenho variável',
 }
 
-export function StudentInsightsButton({ studentId, studentName, essayCount }: Props) {
+export function StudentInsightsButton({ studentId, studentName, essayCount, canStudentInsights }: Props) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [analysis, setAnalysis] = useState<StudentProgressAnalysis | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   async function handleClick() {
+    if (canStudentInsights === false) {
+      setShowUpgradeModal(true)
+      return
+    }
     if (essayCount < 2) return
     setOpen(true)
     if (analysis) return // already loaded
@@ -52,6 +60,10 @@ export function StudentInsightsButton({ studentId, studentName, essayCount }: Pr
       })
       const data = await res.json()
       if (!res.ok) {
+        if (res.status === 403) {
+          setShowUpgradeModal(true)
+          return
+        }
         setError(data.error ?? 'Erro ao gerar análise.')
       } else {
         setAnalysis(data.analysis)
@@ -81,7 +93,14 @@ export function StudentInsightsButton({ studentId, studentName, essayCount }: Pr
       >
         <Sparkles className="w-3 h-3" />
         Insights
+        {canStudentInsights === false && <FeatureLockBadge tier="premium" />}
       </button>
+
+      <UpgradeModal
+        open={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        reason="student_insights"
+      />
 
       {/* Modal */}
       {open && (

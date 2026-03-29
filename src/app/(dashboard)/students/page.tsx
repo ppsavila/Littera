@@ -1,18 +1,23 @@
 import { createClient } from '@/lib/supabase/server'
 import { Users } from 'lucide-react'
 import { StudentInsightsButton } from '@/components/students/StudentInsightsButton'
+import { canUseFeature } from '@/lib/subscriptions/access'
 
 export default async function StudentsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: students } = await supabase
-    .from('students')
-    .select('*, essays(count)')
-    .eq('teacher_id', user.id)
-    .order('name')
+  const [studentsResult, canStudentInsights] = await Promise.all([
+    supabase
+      .from('students')
+      .select('*, essays(count)')
+      .eq('teacher_id', user.id)
+      .order('name'),
+    canUseFeature(user!.id, 'studentInsights'),
+  ])
 
+  const students = studentsResult.data
   const count = students?.length ?? 0
 
   return (
@@ -111,6 +116,7 @@ export default async function StudentsPage() {
                     studentId={student.id}
                     studentName={student.name}
                     essayCount={essayCount}
+                    canStudentInsights={canStudentInsights}
                   />
                 </div>
               </div>
