@@ -123,11 +123,11 @@ Plans:
 
 **Requirements:** PLAN-01, PLAN-02, PLAN-03, PLAN-04
 
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [x] 05-01-PLAN.md — DB migration (onboarded column) + welcome modal on first login (PLAN-01)
-- [ ] 05-02-PLAN.md — FeatureLockBadge + paywall gates on AI/insights/WhatsApp (PLAN-02, PLAN-03, PLAN-04)
+- [x] 05-02-PLAN.md — FeatureLockBadge + paywall gates on AI/insights/WhatsApp (PLAN-02, PLAN-03, PLAN-04)
 - [ ] 05-03-PLAN.md — CPF collection fix in UpgradeModal + pricing page refinement (PLAN-03, PLAN-04)
 
 **Deliverables:**

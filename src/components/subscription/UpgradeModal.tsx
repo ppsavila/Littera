@@ -1,8 +1,30 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Check, Zap, Crown, Star, AlertCircle, Loader2 } from 'lucide-react'
 import { PLANS, type Plan } from '@/lib/subscriptions/plans'
+
+function formatCpf(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+  if (digits.length <= 3) return digits
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`
+  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`
+}
+
+function isValidCpf(digits: string): boolean {
+  if (digits.length !== 11 || /^(\d)\1+$/.test(digits)) return false
+  let sum = 0
+  for (let i = 0; i < 9; i++) sum += parseInt(digits[i]) * (10 - i)
+  let r = (sum * 10) % 11
+  if (r === 10 || r === 11) r = 0
+  if (r !== parseInt(digits[9])) return false
+  sum = 0
+  for (let i = 0; i < 10; i++) sum += parseInt(digits[i]) * (11 - i)
+  r = (sum * 10) % 11
+  if (r === 10 || r === 11) r = 0
+  return r === parseInt(digits[10])
+}
 
 type UpgradeReason = 'daily_limit' | 'ai_analysis' | 'student_insights' | 'whatsapp' | 'welcome'
 
@@ -90,18 +112,47 @@ const WELCOME_PLAN_COLORS: Record<Plan, { icon: string; border: string; bg: stri
 export function UpgradeModal({ open, onClose, reason = 'daily_limit', currentPlan = 'free' }: UpgradeModalProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [pendingPlan, setPendingPlan] = useState<'plus' | 'premium' | null>(null)
+  const [cpf, setCpf] = useState('')
   const copy = REASON_COPY[reason]
+
+  useEffect(() => {
+    if (!open) {
+      setPendingPlan(null)
+      setCpf('')
+      setError('')
+    }
+  }, [open])
+
+  function handleClose() {
+    setPendingPlan(null)
+    setCpf('')
+    setError('')
+    onClose()
+  }
 
   if (!open) return null
 
-  async function handleUpgrade(plan: 'plus' | 'premium') {
+  function handleUpgrade(plan: 'plus' | 'premium') {
+    setPendingPlan(plan)
+    setCpf('')
+    setError('')
+  }
+
+  async function submitCheckout() {
+    if (!pendingPlan) return
+    const digits = cpf.replace(/\D/g, '')
+    if (!isValidCpf(digits)) {
+      setError('CPF invalido. Verifique os numeros e tente novamente.')
+      return
+    }
     setLoading(true)
     setError('')
     try {
       const res = await fetch('/api/subscription/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ plan: pendingPlan, taxId: digits }),
       })
       const data = await res.json()
       if (data.checkoutUrl) {
@@ -110,7 +161,7 @@ export function UpgradeModal({ open, onClose, reason = 'daily_limit', currentPla
         setError(data.error ?? 'Erro ao iniciar pagamento.')
       }
     } catch {
-      setError('Erro de conexão. Tente novamente.')
+      setError('Erro de conexao. Tente novamente.')
     } finally {
       setLoading(false)
     }
@@ -125,7 +176,7 @@ export function UpgradeModal({ open, onClose, reason = 'daily_limit', currentPla
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.5)' }}
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+      onClick={(e) => e.target === e.currentTarget && handleClose()}
     >
       <div
         className={`littera-scale-in relative w-full rounded-2xl overflow-hidden ${isWelcome ? 'max-w-xl' : 'max-w-lg'}`}
@@ -137,7 +188,7 @@ export function UpgradeModal({ open, onClose, reason = 'daily_limit', currentPla
       >
         {/* Close */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
           style={{ color: 'var(--littera-slate)', background: 'var(--littera-mist)' }}
         >
@@ -166,7 +217,49 @@ export function UpgradeModal({ open, onClose, reason = 'daily_limit', currentPla
         {isWelcome ? (
           /* Welcome 3-column plan comparison */
           <>
-            <div className="p-6 grid grid-cols-3 gap-3">
+            {pendingPlan && (
+              <div className="p-6 space-y-4">
+                <h3 className="font-display font-semibold text-lg" style={{ color: 'var(--littera-ink)' }}>
+                  Confirmar assinatura
+                </h3>
+                <p className="text-sm" style={{ color: 'var(--littera-slate)' }}>
+                  Digite seu CPF para continuar para o pagamento.
+                </p>
+                <input
+                  type="text"
+                  placeholder="000.000.000-00"
+                  value={cpf}
+                  onChange={(e) => setCpf(formatCpf(e.target.value))}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                  style={{
+                    border: '1px solid var(--littera-dust)',
+                    background: 'var(--littera-mist)',
+                    color: 'var(--littera-ink)',
+                  }}
+                />
+                {error && (
+                  <p className="text-xs" style={{ color: 'var(--littera-rose)' }}>{error}</p>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setPendingPlan(null)}
+                    className="flex-1 py-2.5 text-sm rounded-xl"
+                    style={{ border: '1px solid var(--littera-dust)', color: 'var(--littera-slate)' }}
+                  >
+                    Voltar
+                  </button>
+                  <button
+                    onClick={submitCheckout}
+                    disabled={loading}
+                    className="flex-1 py-2.5 text-sm font-semibold rounded-xl"
+                    style={{ background: 'var(--littera-forest)', color: '#fff' }}
+                  >
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Continuar'}
+                  </button>
+                </div>
+              </div>
+            )}
+            {!pendingPlan && <div className="p-6 grid grid-cols-3 gap-3">
               {(['free', 'plus', 'premium'] as Plan[]).map((planId) => {
                 const plan = PLANS[planId]
                 const colors = WELCOME_PLAN_COLORS[planId]
@@ -234,35 +327,79 @@ export function UpgradeModal({ open, onClose, reason = 'daily_limit', currentPla
                   </div>
                 )
               })}
-            </div>
+            </div>}
 
-            {error && (
+            {!pendingPlan && error && (
               <p className="px-6 pb-2 text-sm text-center" style={{ color: 'var(--littera-rose)' }}>
                 {error}
               </p>
             )}
 
-            <div className="px-6 pb-6 flex flex-col gap-2 items-center">
-              <button
-                onClick={() => handleUpgrade('plus')}
-                disabled={loading}
-                className="littera-btn littera-btn-primary w-full py-2.5 text-sm"
-              >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Assinar Plus — R$ 9,90/mês'}
-              </button>
-              <button
-                onClick={onClose}
-                className="text-xs py-1"
-                style={{ color: 'var(--littera-slate)' }}
-              >
-                Começar com o plano Grátis
-              </button>
-            </div>
+            {!pendingPlan && (
+              <div className="px-6 pb-6 flex flex-col gap-2 items-center">
+                <button
+                  onClick={() => handleUpgrade('plus')}
+                  disabled={loading}
+                  className="littera-btn littera-btn-primary w-full py-2.5 text-sm"
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Assinar Plus — R$ 9,90/mês'}
+                </button>
+                <button
+                  onClick={handleClose}
+                  className="text-xs py-1"
+                  style={{ color: 'var(--littera-slate)' }}
+                >
+                  Começar com o plano Grátis
+                </button>
+              </div>
+            )}
           </>
         ) : (
           /* Standard 2-column upgrade layout */
           <>
-            <div className="p-6 grid grid-cols-2 gap-3">
+            {pendingPlan && (
+              <div className="p-6 space-y-4">
+                <h3 className="font-display font-semibold text-lg" style={{ color: 'var(--littera-ink)' }}>
+                  Confirmar assinatura
+                </h3>
+                <p className="text-sm" style={{ color: 'var(--littera-slate)' }}>
+                  Digite seu CPF para continuar para o pagamento.
+                </p>
+                <input
+                  type="text"
+                  placeholder="000.000.000-00"
+                  value={cpf}
+                  onChange={(e) => setCpf(formatCpf(e.target.value))}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                  style={{
+                    border: '1px solid var(--littera-dust)',
+                    background: 'var(--littera-mist)',
+                    color: 'var(--littera-ink)',
+                  }}
+                />
+                {error && (
+                  <p className="text-xs" style={{ color: 'var(--littera-rose)' }}>{error}</p>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setPendingPlan(null)}
+                    className="flex-1 py-2.5 text-sm rounded-xl"
+                    style={{ border: '1px solid var(--littera-dust)', color: 'var(--littera-slate)' }}
+                  >
+                    Voltar
+                  </button>
+                  <button
+                    onClick={submitCheckout}
+                    disabled={loading}
+                    className="flex-1 py-2.5 text-sm font-semibold rounded-xl"
+                    style={{ background: 'var(--littera-forest)', color: '#fff' }}
+                  >
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Continuar'}
+                  </button>
+                </div>
+              </div>
+            )}
+            {!pendingPlan && <div className="p-6 grid grid-cols-2 gap-3">
               {plansToShow.map((planId) => {
                 const plan = PLANS[planId]
                 const highlights = PLAN_HIGHLIGHTS[planId]
@@ -327,19 +464,21 @@ export function UpgradeModal({ open, onClose, reason = 'daily_limit', currentPla
                   </div>
                 )
               })}
-            </div>
+            </div>}
 
-            {error && (
+            {!pendingPlan && error && (
               <p className="px-6 pb-4 text-sm text-center" style={{ color: 'var(--littera-rose)' }}>
                 {error}
               </p>
             )}
 
-            <div className="px-6 pb-5 text-center">
-              <button onClick={onClose} className="text-xs" style={{ color: 'var(--littera-slate)' }}>
-                Continuar com o plano Grátis
-              </button>
-            </div>
+            {!pendingPlan && (
+              <div className="px-6 pb-5 text-center">
+                <button onClick={handleClose} className="text-xs" style={{ color: 'var(--littera-slate)' }}>
+                  Continuar com o plano Grátis
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>
