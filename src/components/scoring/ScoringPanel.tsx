@@ -5,6 +5,8 @@ import { useScoringStore } from '@/stores/scoringStore'
 import { CompetencyCard } from './CompetencyCard'
 import { ScoreGauge } from './ScoreGauge'
 import { AIAnalysisCard } from './AIAnalysisCard'
+import { UpgradeModal } from '@/components/subscription/UpgradeModal'
+import { FeatureLockBadge } from '@/components/subscription/FeatureLockBadge'
 import { COMPETENCIES } from '@/types/essay'
 import { Sparkles, BarChart2, Loader2, Save, Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -16,9 +18,10 @@ interface Props {
   essay: Essay
   /** When true, fills available width instead of the fixed 320 px desktop width */
   fullWidth?: boolean
+  canAiAnalysis?: boolean
 }
 
-export function ScoringPanel({ essay, fullWidth = false }: Props) {
+export function ScoringPanel({ essay, fullWidth = false, canAiAnalysis }: Props) {
   const {
     scores,
     notes,
@@ -40,6 +43,8 @@ export function ScoringPanel({ essay, fullWidth = false }: Props) {
   const [activeTab, setActiveTab] = useState<'scores' | 'ai'>('scores')
   const [analyzeError, setAnalyzeError] = useState('')
   const [saveState, setSaveState] = useState<SaveState>('idle')
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [upgradeReason, setUpgradeReason] = useState<'ai_analysis' | 'daily_limit'>('ai_analysis')
   const supabase = createClient()
 
   async function handleSave() {
@@ -84,6 +89,16 @@ export function ScoringPanel({ essay, fullWidth = false }: Props) {
       const response = await fetch(`/api/essays/${essay.id}/analyze`, { method: 'POST' })
 
       if (!response.ok) {
+        if (response.status === 403) {
+          setUpgradeReason('ai_analysis')
+          setShowUpgradeModal(true)
+          return
+        }
+        if (response.status === 429) {
+          setUpgradeReason('daily_limit')
+          setShowUpgradeModal(true)
+          return
+        }
         const body = await response.text()
         let msg = `Erro ${response.status}`
         try { msg = JSON.parse(body).error ?? msg } catch {}
@@ -205,10 +220,19 @@ export function ScoringPanel({ essay, fullWidth = false }: Props) {
               {key === 'ai' && isAnalyzing && (
                 <Loader2 className="w-3 h-3 animate-spin" />
               )}
+              {key === 'ai' && canAiAnalysis === false && (
+                <FeatureLockBadge tier="plus" onClick={() => { setUpgradeReason('ai_analysis'); setShowUpgradeModal(true) }} />
+              )}
             </button>
           )
         })}
       </div>
+
+      <UpgradeModal
+        open={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        reason={upgradeReason}
+      />
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
@@ -260,7 +284,7 @@ export function ScoringPanel({ essay, fullWidth = false }: Props) {
               analysis={aiAnalysis}
               streamingText={streamingText}
               isAnalyzing={isAnalyzing}
-              onAnalyze={handleAnalyze}
+              onAnalyze={canAiAnalysis === false ? () => { setUpgradeReason('ai_analysis'); setShowUpgradeModal(true) } : handleAnalyze}
             />
           </>
         )}
