@@ -328,6 +328,76 @@ async function buildScoringPage(
   }
 }
 
+// ─── Standalone PDF generation (exported for reuse by WhatsApp share) ──────────
+
+export async function generatePdfBytes(
+  essay: Essay,
+  scores: { c1: number | null; c2: number | null; c3: number | null; c4: number | null; c5: number | null },
+  notes: { c1: string; c2: string; c3: string; c4: string; c5: string },
+  generalComment: string,
+  totalScore: number,
+  markers: ErrorMarker[],
+  annotations: Record<number, Annotation[]>,
+  totalPages: number,
+): Promise<Uint8Array> {
+  const { PDFDocument } = await import('pdf-lib')
+  const pdf = await PDFDocument.create()
+
+  // Text-type essays: capture the HTML text container to canvas via html-to-image
+  // (html2canvas does not support modern CSS color functions like lab() used in Littera's theme)
+  const { pageCanvases } = useViewerStore.getState()
+  if (essay.source_type === 'text' && !pageCanvases[1]) {
+    const textEl = document.querySelector('[data-essay-text-container="1"]') as HTMLElement
+    if (textEl) {
+      const { toCanvas } = await import('html-to-image')
+      const captured = await toCanvas(textEl, {
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+        width: textEl.scrollWidth,
+        height: textEl.scrollHeight,
+      })
+      // Register in viewerStore so the existing loop picks it up
+      const { setPageCanvas } = useViewerStore.getState()
+      setPageCanvas(1, captured)
+    }
+  }
+
+  for (let i = 1; i <= totalPages; i++) {
+    const srcCanvas = useViewerStore.getState().pageCanvases[i]
+    if (!srcCanvas) continue
+
+    const W = srcCanvas.width
+    const H = srcCanvas.height
+
+    const canvas = document.createElement('canvas')
+    canvas.width = W
+    canvas.height = H
+    const ctx = canvas.getContext('2d')!
+
+    // White background
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, W, H)
+
+    // Essay content (already rendered by PDFRenderer/ImageRenderer)
+    ctx.drawImage(srcCanvas, 0, 0)
+
+    // Annotations
+    drawAnnotationsOnCanvas(ctx, annotations[i] ?? [], W, H)
+
+    // Error markers
+    drawMarkersOnCanvas(ctx, markers.filter((m) => m.page_number === i), W, H)
+
+    const img = await pdf.embedJpg(dataUrlToBytes(canvas.toDataURL('image/jpeg', 0.88)))
+    const page = pdf.addPage([img.width / 2, img.height / 2])
+    page.drawImage(img, { x: 0, y: 0, width: img.width / 2, height: img.height / 2 })
+  }
+
+  await buildScoringPage(pdf, essay, scores, notes, generalComment, totalScore, markers)
+
+  const bytes = await pdf.save()
+  return bytes
+}
+
 // ─── Component ─────────────────────────────────────────────────────────────────
 
 export function ExportPDFButton({ essay }: Props) {
@@ -335,65 +405,14 @@ export function ExportPDFButton({ essay }: Props) {
   const { scores, notes, generalComment, totalScore: getTotalScore } = useScoringStore()
   const { markers } = useErrorMarkerStore()
   const { annotations } = useAnnotationStore()
-  const { pageCanvases, totalPages } = useViewerStore()
+  const { totalPages } = useViewerStore()
 
   async function handleExport() {
     setExporting(true)
     try {
-      const { PDFDocument } = await import('pdf-lib')
-      const pdf = await PDFDocument.create()
-
-      // Text-type essays: capture the HTML text container to canvas via html-to-image
-      // (html2canvas does not support modern CSS color functions like lab() used in Littera's theme)
-      if (essay.source_type === 'text' && !pageCanvases[1]) {
-        const textEl = document.querySelector('[data-essay-text-container="1"]') as HTMLElement
-        if (textEl) {
-          const { toCanvas } = await import('html-to-image')
-          const captured = await toCanvas(textEl, {
-            pixelRatio: 2,
-            backgroundColor: '#ffffff',
-            width: textEl.scrollWidth,
-            height: textEl.scrollHeight,
-          })
-          // Register in viewerStore so the existing loop picks it up
-          const { setPageCanvas } = useViewerStore.getState()
-          setPageCanvas(1, captured)
-        }
-      }
-
-      for (let i = 1; i <= totalPages; i++) {
-        const srcCanvas = useViewerStore.getState().pageCanvases[i]
-        if (!srcCanvas) continue
-
-        const W = srcCanvas.width
-        const H = srcCanvas.height
-
-        const canvas = document.createElement('canvas')
-        canvas.width = W
-        canvas.height = H
-        const ctx = canvas.getContext('2d')!
-
-        // White background
-        ctx.fillStyle = '#ffffff'
-        ctx.fillRect(0, 0, W, H)
-
-        // Essay content (already rendered by PDFRenderer/ImageRenderer)
-        ctx.drawImage(srcCanvas, 0, 0)
-
-        // Annotations
-        drawAnnotationsOnCanvas(ctx, annotations[i] ?? [], W, H)
-
-        // Error markers
-        drawMarkersOnCanvas(ctx, markers.filter((m) => m.page_number === i), W, H)
-
-        const img = await pdf.embedJpg(dataUrlToBytes(canvas.toDataURL('image/jpeg', 0.88)))
-        const page = pdf.addPage([img.width / 2, img.height / 2])
-        page.drawImage(img, { x: 0, y: 0, width: img.width / 2, height: img.height / 2 })
-      }
-
-      await buildScoringPage(pdf, essay, scores, notes, generalComment, getTotalScore(), markers)
-
-      const bytes = await pdf.save()
+      const bytes = await generatePdfBytes(
+        essay, scores, notes, generalComment, getTotalScore(), markers, annotations, totalPages,
+      )
       const blob = new Blob([bytes.buffer as ArrayBuffer], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
