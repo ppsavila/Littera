@@ -241,6 +241,17 @@ async function buildScoringPage(
   if (essay.theme) {
     page.drawText(sanitize(essay.theme), { x: M, y, font, size: 10, color: slate }); ln(13)
   }
+
+  // Student info + date (EXP-04)
+  const studentName = essay.student?.name ?? null
+  const className = essay.student?.class_name ?? null
+  const dateStr = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const infoLine = [studentName, className, dateStr].filter(Boolean).join('  |  ')
+  if (infoLine) {
+    page.drawText(sanitize(infoLine), { x: M, y, font, size: 10, color: slate })
+    ln(13)
+  }
+
   ln(12)
 
   // Total score
@@ -332,8 +343,27 @@ export function ExportPDFButton({ essay }: Props) {
       const { PDFDocument } = await import('pdf-lib')
       const pdf = await PDFDocument.create()
 
+      // Text-type essays: capture the HTML text container to canvas via html2canvas
+      if (essay.source_type === 'text' && !pageCanvases[1]) {
+        const textEl = document.querySelector('[data-essay-text-container="1"]') as HTMLElement
+        if (textEl) {
+          const html2canvas = (await import('html2canvas')).default
+          const captured = await html2canvas(textEl, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff',
+            // Use the element's scroll dimensions for full capture
+            width: textEl.scrollWidth,
+            height: textEl.scrollHeight,
+          })
+          // Register in viewerStore so the existing loop picks it up
+          const { setPageCanvas } = useViewerStore.getState()
+          setPageCanvas(1, captured)
+        }
+      }
+
       for (let i = 1; i <= totalPages; i++) {
-        const srcCanvas = pageCanvases[i]
+        const srcCanvas = useViewerStore.getState().pageCanvases[i]
         if (!srcCanvas) continue
 
         const W = srcCanvas.width
