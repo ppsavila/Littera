@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-last_updated: "2026-03-29T20:27:35.798Z"
+last_updated: "2026-03-29T20:39:43.708Z"
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 15
-  completed_plans: 12
+  completed_plans: 14
 ---
 
 # Project State
@@ -68,6 +68,8 @@ Status: Complete — Plan 04-01 and 04-02 complete (2/2 plans done)
 - [Phase 05-02]: 403 and 429 short-circuit before response body parse in handleAnalyze to avoid double-read bug
 - [Phase 05-02]: canStudentInsights resolved in Promise.all alongside students query to minimize server round-trips
 - [Phase 05-02]: WorkspaceHeader UpgradeModal rendered inline after the WhatsApp button — z-index works with sticky header at z-[60]
+- [Phase 05-03]: CPF utilities duplicated from PricingClient into UpgradeModal — small utilities, no shared module extraction needed for this phase
+- [Phase 05-03]: handleClose wraps onClose to always reset CPF state on modal dismiss — prevents stale CPF on reopen
 
 ## Notes
 
