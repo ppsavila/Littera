@@ -35,7 +35,7 @@
 - [x] **EXP-02**: PDF exportado inclui marcações de erro visíveis no texto
 - [x] **EXP-03**: PDF exportado inclui anotações do canvas (desenhos, setas, texto)
 - [x] **EXP-04**: Layout do PDF formatado e legível para o aluno
-- [ ] **EXP-05**: (Premium) Envio do PDF diretamente pelo WhatsApp
+- [x] **EXP-05**: (Premium) Envio do PDF diretamente pelo WhatsApp
 
 ### Plans & Paywall
 
@@ -93,7 +93,7 @@
 | EXP-02 | Phase 4 | Complete |
 | EXP-03 | Phase 4 | Complete |
 | EXP-04 | Phase 4 | Complete |
-| EXP-05 | Phase 4 | Pending |
+| EXP-05 | Phase 4 | Complete |
 | PLAN-01 | Phase 5 | Pending |
 | PLAN-02 | Phase 5 | Pending |
 | PLAN-03 | Phase 5 | Pending |
