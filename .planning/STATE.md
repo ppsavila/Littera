@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Not started
-last_updated: "2026-03-28T21:24:29.094Z"
+last_updated: "2026-03-28T21:25:19.838Z"
 progress:
   total_phases: 5
   completed_phases: 2
@@ -20,7 +20,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-03-28)
 
 **Core value:** O professor consegue corrigir uma redação com qualidade e velocidade — da análise à entrega do feedback ao aluno.
-**Current focus:** Phase 03 — annotation-ux
+**Current focus:** Phase 02 — test-suite
 
 ## Current Phase
 
