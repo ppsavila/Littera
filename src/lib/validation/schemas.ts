@@ -49,6 +49,7 @@ export const ProfileUpdateSchema = z.object({
   full_name: z.string().min(1).max(200).optional(),
   cellphone: z.string().max(20).optional(),
   school: z.string().max(200).optional(),
+  onboarded: z.boolean().optional(),
 }).refine(obj => Object.keys(obj).length > 0, {
   message: 'At least one field must be provided',
 })
