@@ -17,7 +17,7 @@ const TIER_STYLES: Record<Tier, { color: string; bg: string; label: string }> = 
 export function FeatureLockBadge({ tier, onClick }: Props) {
   const style = TIER_STYLES[tier]
   return (
-    <button
+    <span
       onClick={onClick}
       className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold"
       style={{ background: style.bg, color: style.color }}
@@ -26,6 +26,6 @@ export function FeatureLockBadge({ tier, onClick }: Props) {
     >
       <Lock className="w-3 h-3" />
       {style.label}
-    </button>
+    </span>
   )
 }
