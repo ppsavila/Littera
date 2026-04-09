@@ -16,7 +16,7 @@ const variantClass = {
 export function ClayCard({
   size = 'md',
   variant = 'warm',
-  padding = 'p-5',
+  padding = 'p-6',
   className,
   children,
   ...props
