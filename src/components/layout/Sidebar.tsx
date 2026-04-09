@@ -29,7 +29,7 @@ export function Sidebar() {
         className="flex items-center flex-shrink-0"
         style={{
           borderBottom: '1px solid var(--littera-dust)',
-          height: 52,
+          height: 60,
           padding: collapsed ? '0 8px' : '0 12px 0 20px',
           justifyContent: collapsed ? 'center' : 'space-between',
         }}
@@ -72,11 +72,11 @@ export function Sidebar() {
               className="flex items-center rounded-lg text-sm font-medium transition-all relative group"
               style={{
                 gap: collapsed ? 0 : 12,
-                padding: collapsed ? '10px 0' : '10px 12px',
+                padding: collapsed ? '10px 0' : '10px 14px',
                 justifyContent: collapsed ? 'center' : 'flex-start',
                 ...(active
                   ? { background: 'var(--littera-forest-light)', color: 'var(--littera-forest)' }
-                  : { color: 'var(--littera-slate)' }),
+                  : { color: 'var(--littera-slate-dark)' }),
               }}
             >
               {active && !collapsed && (
@@ -123,7 +123,7 @@ export function Sidebar() {
           className="px-5 py-3 flex-shrink-0"
           style={{ borderTop: '1px solid var(--littera-dust)' }}
         >
-          <p className="text-xs" style={{ color: 'var(--littera-slate)' }}>
+          <p className="text-xs" style={{ color: 'var(--littera-slate-dark)' }}>
             Litterando · v0.1
           </p>
         </div>

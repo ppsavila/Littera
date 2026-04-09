@@ -17,7 +17,7 @@ export const ClayInput = forwardRef<HTMLInputElement, ClayInputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="text-sm font-semibold ml-0.5"
+            className="text-sm font-semibold ml-0.5 tracking-wide"
             style={{ color: 'var(--littera-ink)' }}
           >
             {label}

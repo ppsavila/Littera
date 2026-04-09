@@ -40,16 +40,16 @@ export function Header({ user, usageInfo }: HeaderProps) {
 
   return (
     <header
-      className="flex items-center justify-between gap-4 px-5 py-3"
+      className="flex items-center justify-between gap-4 px-6 py-4"
       style={{
         background: 'var(--littera-paper)',
         borderBottom: '1px solid var(--littera-dust)',
-        minHeight: 56,
+        minHeight: 60,
       }}
     >
       {/* Page title — visible on mobile too */}
       <h2
-        className="font-display text-base font-semibold"
+        className="font-display text-lg font-semibold"
         style={{ color: 'var(--littera-ink)' }}
       >
         {pageTitle}
@@ -90,7 +90,7 @@ export function Header({ user, usageInfo }: HeaderProps) {
 
           <span
             className="text-sm hidden sm:block truncate max-w-[180px]"
-            style={{ color: 'var(--littera-slate)' }}
+            style={{ color: 'var(--littera-slate-dark)' }}
           >
             {user.email}
           </span>
@@ -101,7 +101,7 @@ export function Header({ user, usageInfo }: HeaderProps) {
           onClick={handleSignOut}
           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all hover:bg-opacity-80"
           style={{
-            color: 'var(--littera-slate)',
+            color: 'var(--littera-slate-dark)',
             background: 'var(--littera-mist)',
             border: '1px solid var(--littera-dust)',
           }}
