@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-last_updated: "2026-04-09T20:59:26.426Z"
+last_updated: "2026-04-09T21:49:28.063Z"
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 17
-  completed_plans: 14
+  completed_plans: 16
 ---
 
 # Project State
@@ -70,6 +70,8 @@ Status: Complete — Plan 04-01 and 04-02 complete (2/2 plans done)
 - [Phase 05-02]: WorkspaceHeader UpgradeModal rendered inline after the WhatsApp button — z-index works with sticky header at z-[60]
 - [Phase 05-03]: CPF utilities duplicated from PricingClient into UpgradeModal — small utilities, no shared module extraction needed for this phase
 - [Phase 05-03]: handleClose wraps onClose to always reset CPF state on modal dismiss — prevents stale CPF on reopen
+- [Phase 06-02]: Plus card bg changed from #faf5ff to #f5f0ff for stronger purple tint, combined with shadow-md elevation to differentiate from Free/Premium cards
+- [Phase 06-02]: Established slate-dark convention: body-size informational text on parchment must use var(--littera-slate-dark), never var(--littera-slate)
 
 ## Notes
 
