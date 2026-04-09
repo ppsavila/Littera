@@ -152,11 +152,11 @@ Plans:
 
 **Requirements:** UI-01, UI-02, UI-03, UI-04
 
-**Plans:** 1/2 plans complete
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 06-01-PLAN.md — Global typography scale, spacing system, contrast audit + Clay* components and dashboard layout (UI-01, UI-02, UI-03)
-- [ ] 06-02-PLAN.md — Landing page hero + pricing page visual polish (UI-04)
+- [x] 06-02-PLAN.md — Landing page hero + pricing page visual polish (UI-04)
 
 **Deliverables:**
 - Escala tipográfica revisada: tamanhos de texto maiores e mais hierárquicos (h1–h4 + body + caption)
@@ -217,7 +217,7 @@ Plans:
 | 3 | Annotation UX | ANNO-01-04 | Complete — 2026-03-29 |
 | 4 | Export Upgrade | EXP-01-05 | Complete — 2026-03-29 |
 | 5 | Plans & Paywall | PLAN-01-04 | Complete — 2026-03-30 |
-| 6 | UI Readability | UI-01-04 | Planned |
+| 6 | 2/2 | Complete   | 2026-04-09 |
 | 7 | Product Analytics | ANA-01-03 | Planned |
 
 ---
