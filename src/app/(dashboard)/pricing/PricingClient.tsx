@@ -56,7 +56,7 @@ const PLAN_COLORS: Record<Plan, { icon: string; border: string; bg: string }> = 
   plus: {
     icon: '#7c3aed',
     border: '#7c3aed',
-    bg: '#faf5ff',
+    bg: '#f5f0ff',
   },
   premium: {
     icon: '#b45309',
@@ -212,13 +212,13 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan, 
       )}
 
       <div className="text-center space-y-2">
-        <h2 className="font-display text-2xl sm:text-3xl font-bold" style={{ color: 'var(--littera-ink)' }}>
+        <h2 className="font-display text-2xl sm:text-3xl font-extrabold" style={{ color: 'var(--littera-ink)' }}>
           Corrija mais. Ensine melhor.
         </h2>
       </div>
 
       {/* Plan cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         {plans.map((planId) => {
           const plan = PLANS[planId]
           const colors = PLAN_COLORS[planId]
@@ -228,11 +228,15 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan, 
           return (
             <div
               key={planId}
-              className="rounded-2xl p-5 flex flex-col gap-4 relative"
+              className="rounded-2xl p-6 flex flex-col gap-4 relative"
               style={{
                 background: colors.bg,
                 border: `${isCurrent || planId === 'plus' ? '2px' : '1px'} solid ${isCurrent ? colors.border : planId === 'plus' ? '#7c3aed' : 'var(--littera-dust)'}`,
-                boxShadow: isCurrent ? 'var(--littera-shadow)' : 'var(--littera-shadow-sm)',
+                boxShadow: planId === 'plus' && !isCurrent
+                  ? 'var(--littera-shadow-md)'
+                  : isCurrent
+                  ? 'var(--littera-shadow)'
+                  : 'var(--littera-shadow-sm)',
               }}
             >
               {isRecommended && !isCurrent && (
@@ -261,18 +265,18 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan, 
                 >
                   {PLAN_ICONS[planId]}
                 </div>
-                <h2 className="font-display text-lg font-semibold" style={{ color: 'var(--littera-ink)' }}>
+                <h2 className="font-display text-xl font-bold" style={{ color: 'var(--littera-ink)' }}>
                   {plan.name}
                 </h2>
                 <div className="flex items-baseline gap-1 mt-1">
                   {plan.price === 0 ? (
-                    <span className="font-display text-2xl font-bold" style={{ color: 'var(--littera-ink)' }}>
+                    <span className="font-display text-3xl font-bold" style={{ color: 'var(--littera-ink)' }}>
                       Grátis
                     </span>
                   ) : (
                     <>
                       <span className="text-xs font-medium" style={{ color: 'var(--littera-slate)' }}>R$</span>
-                      <span className="font-display text-2xl font-bold" style={{ color: 'var(--littera-ink)' }}>
+                      <span className="font-display text-3xl font-bold" style={{ color: 'var(--littera-ink)' }}>
                         {plan.price.toFixed(2).replace('.', ',')}
                       </span>
                       <span className="text-xs" style={{ color: 'var(--littera-slate)' }}>/mês</span>
@@ -289,11 +293,11 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan, 
                   return (
                     <li
                       key={key}
-                      className="flex items-start gap-2 text-sm"
+                      className="flex items-start gap-2.5 text-sm sm:text-base"
                       style={{ color: enabled ? 'var(--littera-ink)' : 'var(--littera-dust)' }}
                     >
                       <Check
-                        className="w-4 h-4 flex-shrink-0 mt-0.5"
+                        className="w-5 h-5 flex-shrink-0 mt-0.5"
                         style={{ color: enabled ? 'var(--littera-forest)' : 'var(--littera-dust)' }}
                         strokeWidth={enabled ? 2.5 : 1.5}
                       />
@@ -313,7 +317,7 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan, 
               <button
                 onClick={() => handleUpgrade(planId)}
                 disabled={isCurrent || planId === 'free' || loading !== null}
-                className="littera-btn w-full py-2.5 text-sm font-semibold rounded-xl transition-all"
+                className="littera-btn w-full py-3 text-sm font-semibold rounded-xl transition-all"
                 style={
                   isCurrent
                     ? { background: 'var(--littera-mist)', color: 'var(--littera-slate)', border: '1px solid var(--littera-dust)', cursor: 'default' }
@@ -337,7 +341,7 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan, 
         })}
       </div>
 
-      <p className="text-sm text-center" style={{ color: 'var(--littera-slate)' }}>
+      <p className="text-sm text-center font-medium" style={{ color: 'var(--littera-slate-dark)' }}>
         Professores no plano Plus corrigem 5× mais redacoes por semana
       </p>
 
@@ -356,16 +360,16 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan, 
           className="px-5 py-3"
           style={{ background: 'var(--littera-mist)', borderBottom: '1px solid var(--littera-dust)' }}
         >
-          <h3 className="font-semibold text-sm" style={{ color: 'var(--littera-ink)' }}>
+          <h3 className="font-semibold text-base" style={{ color: 'var(--littera-ink)' }}>
             Comparação detalhada
           </h3>
         </div>
-        <table className="w-full text-sm" style={{ background: 'var(--littera-paper)' }}>
+        <table className="w-full text-sm sm:text-base" style={{ background: 'var(--littera-paper)' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--littera-dust)' }}>
               <th className="text-left px-5 py-3 font-medium" style={{ color: 'var(--littera-slate)' }}>Recurso</th>
               {plans.map((p) => (
-                <th key={p} className="text-center px-3 py-3 font-semibold" style={{ color: activePlan === p ? 'var(--littera-forest)' : 'var(--littera-ink)' }}>
+                <th key={p} className="text-center px-3 py-3.5 font-bold" style={{ color: activePlan === p ? 'var(--littera-forest)' : 'var(--littera-ink)' }}>
                   {PLANS[p].name}
                 </th>
               ))}
@@ -380,11 +384,11 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan, 
                   borderBottom: i < ALL_FEATURES.length - 1 ? '1px solid var(--littera-dust)' : undefined,
                 }}
               >
-                <td className="px-5 py-3" style={{ color: 'var(--littera-ink)' }}>{label}</td>
+                <td className="px-5 py-3.5" style={{ color: 'var(--littera-ink)' }}>{label}</td>
                 {plans.map((p) => {
                   const value = PLAN_FEATURE_VALUES[p][key]
                   return (
-                    <td key={p} className="text-center px-3 py-3" style={{ color: 'var(--littera-slate)' }}>
+                    <td key={p} className="text-center px-3 py-3.5" style={{ color: 'var(--littera-slate)' }}>
                       {typeof value === 'string' ? (
                         <span className="font-medium" style={{ color: 'var(--littera-ink)' }}>{value}</span>
                       ) : value ? (
@@ -431,7 +435,7 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan, 
         </div>
       )}
 
-      <p className="text-xs text-center" style={{ color: 'var(--littera-slate)' }}>
+      <p className="text-xs text-center" style={{ color: 'var(--littera-slate-dark)' }}>
         Pagamentos processados com segurança via Abacate.pay · Cancele quando quiser
       </p>
 
