@@ -45,6 +45,33 @@
   --littera-shadow-md:  0 4px 20px rgba(28,25,23,0.10), 0 2px 6px rgba(28,25,23,0.05);
   --littera-shadow-lg:  0 8px 40px rgba(28,25,23,0.12), 0 4px 12px rgba(28,25,23,0.06);
 
+  /* -- Typography scale ------------------------------------------------- */
+  --littera-text-xs:    0.75rem;   /* 12px — captions, fine print */
+  --littera-text-sm:    0.875rem;  /* 14px — labels, secondary */
+  --littera-text-base:  1rem;      /* 16px — body text minimum */
+  --littera-text-lg:    1.125rem;  /* 18px — emphasized body */
+  --littera-text-xl:    1.25rem;   /* 20px — section subheads */
+  --littera-text-2xl:   1.5rem;    /* 24px — h3 */
+  --littera-text-3xl:   1.875rem;  /* 30px — h2 mobile */
+  --littera-text-4xl:   2.25rem;   /* 36px — h2 desktop / h1 mobile */
+  --littera-text-5xl:   3rem;      /* 48px — h1 desktop */
+  --littera-text-6xl:   3.75rem;   /* 60px — hero display */
+
+  /* -- Spacing scale (8px grid) ---------------------------------------- */
+  --littera-space-1:  0.25rem;  /* 4px */
+  --littera-space-2:  0.5rem;   /* 8px */
+  --littera-space-3:  0.75rem;  /* 12px */
+  --littera-space-4:  1rem;     /* 16px */
+  --littera-space-5:  1.25rem;  /* 20px */
+  --littera-space-6:  1.5rem;   /* 24px */
+  --littera-space-8:  2rem;     /* 32px */
+  --littera-space-10: 2.5rem;   /* 40px */
+  --littera-space-12: 3rem;     /* 48px */
+
+  /* -- Contrast-safe text utilities ------------------------------------- */
+  /* slate (#64748B) on parchment (#FDFAF5) = ~3.9:1 — FAILS AA for normal text */
+  /* Use --littera-slate-dark for body-size text that needs AA compliance   */
+  --littera-slate-dark: #475569;  /* slate-600: ~5.5:1 on parchment */
 
   --background: var(--littera-parchment);
   --foreground: var(--littera-ink);
@@ -56,6 +83,8 @@
 
 html, body {
   height: 100%;
+  font-size: var(--littera-text-base);
+  line-height: 1.65;
   background-color: var(--littera-parchment);
   color: var(--littera-ink);
   -webkit-font-smoothing: antialiased;
@@ -98,7 +127,7 @@ html, body {
   justify-content: center;
   gap: 0.5rem;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: var(--littera-text-sm);
   line-height: 1.25;
   border-radius: 8px;
   border: 1.5px solid transparent;
@@ -113,6 +142,10 @@ html, body {
 .littera-btn:hover:not(:disabled) { transform: translateY(-1px); }
 .littera-btn:active:not(:disabled) { transform: translateY(0.5px); }
 .littera-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.littera-btn:focus-visible {
+  outline: 2px solid var(--littera-forest);
+  outline-offset: 2px;
+}
 
 .littera-btn-primary {
   background: var(--littera-forest);
@@ -168,8 +201,8 @@ html, body {
   background: var(--littera-paper);
   border-radius: 8px;
   border: 1.5px solid var(--littera-dust);
-  padding: 0.625rem 0.875rem;
-  font-size: 0.9rem;
+  padding: 0.75rem 1rem;
+  font-size: var(--littera-text-base);
   font-weight: 400;
   color: var(--littera-ink);
   outline: none;
@@ -192,12 +225,20 @@ html, body {
   gap: 0.25rem;
   padding: 0.175rem 0.55rem;
   border-radius: 99px;
-  font-size: 0.7rem;
+  font-size: var(--littera-text-xs);
   font-weight: 600;
   letter-spacing: 0.01em;
   border: 1px solid transparent;
 }
 
+
+/* -- Focus-visible for links ------------------------------------------ */
+a:focus-visible,
+.littera-link:focus-visible {
+  outline: 2px solid var(--littera-forest);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
 
 /* ─── Dividers ────────────────────────────────────────────────── */
 
