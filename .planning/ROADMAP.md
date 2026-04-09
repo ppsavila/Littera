@@ -144,16 +144,82 @@ Plans:
 
 ---
 
+---
+
+## Phase 6: UI Readability
+
+**Goal:** O app é visualmente legível, hierárquico e confortável de usar — textos claros, espaçamento consistente e contraste adequado em todo o produto.
+
+**Requirements:** UI-01, UI-02, UI-03, UI-04
+
+**Plans:** 0/2 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Global typography scale, spacing system and contrast audit
+- [ ] 06-02-PLAN.md — Landing page hero + pricing page visual polish
+
+**Deliverables:**
+- Escala tipográfica revisada: tamanhos de texto maiores e mais hierárquicos (h1–h4 + body + caption)
+- Espaçamento e padding consistentes nos componentes principais (cards, inputs, botões)
+- Contraste verificado: texto sobre fundo passa WCAG AA
+- Landing page: hero com copy grande e chamativo, seção de features legível
+- Dashboard: header, sidebar e workspace com espaçamento e tamanhos revisados
+- Pricing page: cards de plano com tipografia clara e CTA proeminente
+
+**Success Criteria:**
+- Professor abre o app em mobile e lê o conteúdo sem zoom
+- Hierarquia visual clara: títulos vs. body vs. labels distinguíveis à distância
+- Landing page converte melhor (CTA visível, proposta de valor legível no fold)
+
+---
+
+## Phase 7: Product Analytics
+
+**Goal:** Como dono, consigo ver o que os usuários fazem, onde dropam e quais features usam — sem construir um dashboard próprio.
+
+**Requirements:** ANA-01, ANA-02, ANA-03
+
+**Plans:** 0/2 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — PostHog SDK integration (provider, page tracking, user identify)
+- [ ] 07-02-PLAN.md — Event instrumentation nos pontos-chave do produto
+
+**Deliverables:**
+- PostHog instalado e inicializado (NEXT_PUBLIC_POSTHOG_KEY + NEXT_PUBLIC_POSTHOG_HOST)
+- Page tracking automático em todas as rotas
+- User identification: professor identificado com userId + plano ao entrar no dashboard
+- Eventos instrumentados:
+  - `essay_created` — tipo (pdf/image/text), fonte
+  - `essay_analyzed` — competências selecionadas, plano do usuário
+  - `annotation_used` — tipo (erro/texto/desenho/seta)
+  - `export_triggered` — formato (pdf/whatsapp)
+  - `upgrade_modal_opened` — trigger (limit/feature-gate/manual)
+  - `upgrade_cta_clicked` — plano alvo
+  - `pricing_page_viewed`
+  - `feature_gate_hit` — feature bloqueada, plano atual
+- CSP atualizado para aceitar domínios do PostHog
+- Sentry coexiste sem conflito
+
+**Success Criteria:**
+- PostHog dashboard mostra pageviews e usuários ativos em tempo real
+- Funil de criação de redação (upload → análise → score) visível no PostHog
+- Drop-off identificável: onde os usuários param no fluxo principal
+
+---
+
 ## Summary
 
 | Phase | Focus | Requirements | Status |
 |-------|-------|--------------|--------|
-| 1 | 3/3 | Complete    | 2026-03-28 |
-| 2 | 2/4 | In Progress|  |
-| 3 | Annotation UX | ANNO-01-04 | Planned |
-| 4 | 2/2 | Complete   | 2026-03-29 |
-| 5 | 3/3 | Complete   | 2026-03-29 |
+| 1 | Security Foundation | SEC-01-06 | Complete — 2026-03-28 |
+| 2 | Test Suite | TEST-01-05 | In Progress (2/4) |
+| 3 | Annotation UX | ANNO-01-04 | Complete — 2026-03-29 |
+| 4 | Export Upgrade | EXP-01-05 | Complete — 2026-03-29 |
+| 5 | Plans & Paywall | PLAN-01-04 | Complete — 2026-03-30 |
+| 6 | UI Readability | UI-01-04 | Planned |
+| 7 | Product Analytics | ANA-01-03 | Planned |
 
 ---
 *Roadmap created: 2026-03-28*
-*Last updated: 2026-03-29 after Phase 5 planning*
+*Last updated: 2026-04-09 — added Phase 6 (UI Readability) and Phase 7 (Analytics)*
