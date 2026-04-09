@@ -17,12 +17,12 @@ export default async function PricingPage({ searchParams }: Props) {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <div className="mb-8 littera-fade-up text-center">
         <h1
-          className="font-display text-3xl sm:text-4xl font-semibold mb-3"
+          className="font-display text-3xl sm:text-4xl font-bold mb-4"
           style={{ color: 'var(--littera-ink)' }}
         >
           Planos Litterando
         </h1>
-        <p className="text-base" style={{ color: 'var(--littera-slate)' }}>
+        <p className="text-lg" style={{ color: 'var(--littera-slate-dark)' }}>
           Escolha o plano ideal para sua rotina de correções
         </p>
         <div className="littera-rule mt-5 max-w-xs mx-auto" />
