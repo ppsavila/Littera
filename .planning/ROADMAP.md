@@ -152,11 +152,11 @@ Plans:
 
 **Requirements:** UI-01, UI-02, UI-03, UI-04
 
-**Plans:** 0/2 plans
+**Plans:** 1/2 plans complete
 
 Plans:
-- [ ] 06-01-PLAN.md — Global typography scale, spacing system and contrast audit
-- [ ] 06-02-PLAN.md — Landing page hero + pricing page visual polish
+- [x] 06-01-PLAN.md — Global typography scale, spacing system, contrast audit + Clay* components and dashboard layout (UI-01, UI-02, UI-03)
+- [ ] 06-02-PLAN.md — Landing page hero + pricing page visual polish (UI-04)
 
 **Deliverables:**
 - Escala tipográfica revisada: tamanhos de texto maiores e mais hierárquicos (h1–h4 + body + caption)
@@ -222,4 +222,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-03-28*
-*Last updated: 2026-04-09 — added Phase 6 (UI Readability) and Phase 7 (Analytics)*
+*Last updated: 2026-04-09 — Phase 6 plans created*
