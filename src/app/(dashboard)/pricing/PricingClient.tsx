@@ -28,13 +28,13 @@ const ALL_FEATURES = [
 
 const PLAN_FEATURE_VALUES: Record<Plan, Record<typeof ALL_FEATURES[number]['key'], string | boolean>> = {
   free: {
-    corrections: '2 por dia',
+    corrections: '10 por dia',
     aiAnalysis: false,
     studentInsights: false,
     whatsapp: false,
   },
   plus: {
-    corrections: '10 por dia',
+    corrections: '20 por dia',
     aiAnalysis: true,
     studentInsights: false,
     whatsapp: false,
