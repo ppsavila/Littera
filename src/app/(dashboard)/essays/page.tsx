@@ -145,7 +145,7 @@ export default async function EssaysPage({ searchParams }: Props) {
       {total > 0 && (
         <div className="flex gap-3 flex-wrap littera-fade-up delay-100">
           {[
-            { label: 'Total',      value: total,   status: undefined,  accent: 'var(--littera-forest)', bg: 'var(--littera-forest-light)', border: 'rgba(26,77,58,0.18)' },
+            { label: 'Total',      value: total,   status: undefined,  accent: 'var(--littera-forest)', bg: 'var(--littera-forest-light)', border: 'rgba(75,0,130,0.18)' },
             { label: 'Pendentes',  value: pending, status: 'pending',  accent: 'var(--littera-amber)',  bg: 'var(--littera-amber-light)',  border: 'rgba(180,83,9,0.18)' },
             { label: 'Concluídas', value: done,    status: 'done',     accent: 'var(--littera-sage)',   bg: 'var(--littera-sage-light)',   border: 'rgba(63,98,18,0.18)'  },
           ].map(({ label, value, status, accent, bg, border }) => (

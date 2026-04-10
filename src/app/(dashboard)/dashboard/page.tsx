@@ -35,7 +35,7 @@ export default async function DashboardPage() {
       sub: 'redações',
       accent: 'var(--littera-forest)',
       bg: 'var(--littera-forest-light)',
-      border: 'rgba(26,77,58,0.18)',
+      border: 'rgba(75,0,130,0.18)',
     },
     {
       label: 'Pendentes',

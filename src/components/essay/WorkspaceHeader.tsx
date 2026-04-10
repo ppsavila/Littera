@@ -203,7 +203,7 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
           className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
           style={
             showAnnotations
-              ? { background: 'var(--littera-forest-light)', color: 'var(--littera-forest)', border: '1px solid rgba(26,77,58,0.25)' }
+              ? { background: 'var(--littera-forest-light)', color: 'var(--littera-forest)', border: '1px solid rgba(75,0,130,0.25)' }
               : { background: 'var(--littera-mist)', color: 'var(--littera-slate)', border: '1px solid var(--littera-dust)' }
           }
         >
@@ -218,7 +218,7 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
           className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
           style={
             showScoring
-              ? { background: 'var(--littera-forest-light)', color: 'var(--littera-forest)', border: '1px solid rgba(26,77,58,0.25)' }
+              ? { background: 'var(--littera-forest-light)', color: 'var(--littera-forest)', border: '1px solid rgba(75,0,130,0.25)' }
               : { background: 'var(--littera-mist)', color: 'var(--littera-slate)', border: '1px solid var(--littera-dust)' }
           }
         >
