@@ -1,5 +1,6 @@
 'use client'
 
+import posthog from 'posthog-js'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
@@ -27,6 +28,7 @@ export function Header({ user, usageInfo }: HeaderProps) {
   const supabase = createClient()
 
   async function handleSignOut() {
+    posthog.reset()
     await supabase.auth.signOut()
     router.push('/login')
   }
