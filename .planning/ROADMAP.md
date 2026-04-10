@@ -183,7 +183,7 @@ Plans:
 
 Plans:
 - [x] 07-01-PLAN.md — PostHog SDK foundation: provider, page tracking, user identify, CSP, logout reset (ANA-01)
-- [ ] 07-02-PLAN.md — Event instrumentation: 7 events across 7 components (ANA-02, ANA-03)
+- [x] 07-02-PLAN.md — Event instrumentation: 7 events across 7 components (ANA-02, ANA-03)
 
 **Deliverables:**
 - PostHog instalado e inicializado (NEXT_PUBLIC_POSTHOG_KEY + NEXT_PUBLIC_POSTHOG_HOST)
