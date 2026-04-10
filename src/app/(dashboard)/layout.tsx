@@ -5,6 +5,7 @@ import { Header } from '@/components/layout/Header'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { getUserUsageInfo } from '@/lib/subscriptions/access'
 import { WelcomeModalTrigger } from '@/components/subscription/WelcomeModalTrigger'
+import { PostHogIdentify } from '@/components/layout/PostHogIdentify'
 
 export default async function DashboardLayout({
   children,
@@ -51,6 +52,13 @@ export default async function DashboardLayout({
 
       {/* Welcome modal for new users */}
       <WelcomeModalTrigger onboarded={profile?.onboarded ?? false} currentPlan={usageInfo.plan} />
+
+      {/* PostHog user identification */}
+      <PostHogIdentify
+        userId={user.id}
+        plan={usageInfo.plan}
+        createdAt={user.created_at ?? new Date().toISOString()}
+      />
     </div>
   )
 }

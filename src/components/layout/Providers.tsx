@@ -1,7 +1,10 @@
 'use client'
 
+import posthog from 'posthog-js'
+import { PostHogProvider as PHProvider } from 'posthog-js/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { SuspendedPostHogPageView } from '@/components/analytics/PostHogPageView'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -15,9 +18,21 @@ export function Providers({ children }: { children: React.ReactNode }) {
       })
   )
 
+  useEffect(() => {
+    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+      capture_pageview: false,    // manual tracking via PostHogPageView (D-05)
+      autocapture: false,         // D-18: no noise, full control
+      persistence: 'localStorage', // D-18
+    })
+  }, [])
+
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <PHProvider client={posthog}>
+      <QueryClientProvider client={queryClient}>
+        <SuspendedPostHogPageView />
+        {children}
+      </QueryClientProvider>
+    </PHProvider>
   )
 }
