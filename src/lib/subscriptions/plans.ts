@@ -24,7 +24,7 @@ export const PLANS: Record<Plan, PlanConfig> = {
     id: 'free',
     name: 'Grátis',
     price: 0,
-    dailyCorrections: 2,
+    dailyCorrections: 10,
     features: {
       aiAnalysis: false,
       studentInsights: false,
@@ -35,7 +35,7 @@ export const PLANS: Record<Plan, PlanConfig> = {
     id: 'plus',
     name: 'Plus',
     price: 9.90,
-    dailyCorrections: 10,
+    dailyCorrections: 20,
     features: {
       aiAnalysis: true,
       studentInsights: false,
