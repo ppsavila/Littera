@@ -72,7 +72,7 @@ const PLAN_ICONS: Record<Plan, React.ReactNode> = {
 
 const PLAN_HIGHLIGHTS: Record<'plus' | 'premium', string[]> = {
   plus: [
-    '10 correções por dia',
+    '20 correções por dia',
     'Análise por IA em todas as redações',
     'Suporte prioritário',
   ],
@@ -86,7 +86,7 @@ const PLAN_HIGHLIGHTS: Record<'plus' | 'premium', string[]> = {
 }
 
 const WELCOME_FEATURES = [
-  { label: 'Correções por dia', free: '2 por dia', plus: '10 por dia', premium: 'Ilimitadas' },
+  { label: 'Correções por dia', free: '10 por dia', plus: '20 por dia', premium: 'Ilimitadas' },
   { label: 'Análise por IA', free: false, plus: true, premium: true },
   { label: 'Progresso do aluno', free: false, plus: false, premium: true },
   { label: 'Envio por WhatsApp', free: false, plus: false, premium: true },
