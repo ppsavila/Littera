@@ -7,6 +7,7 @@ import { Upload, FileText, ImageIcon, Type, ChevronRight, Loader2 } from 'lucide
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import { UpgradeModal } from '@/components/subscription/UpgradeModal'
+import { usePostHog } from 'posthog-js/react'
 
 type Step = 'upload' | 'metadata'
 type SourceType = 'pdf' | 'image' | 'text'
@@ -29,6 +30,7 @@ interface FileState {
 export function UploadWizard() {
   const router = useRouter()
   const supabase = createClient()
+  const posthog = usePostHog()
 
   const [step, setStep] = useState<Step>('upload')
   const [fileState, setFileState] = useState<FileState>({
@@ -154,6 +156,7 @@ export function UploadWizard() {
       }
 
       const essay = await essayRes.json()
+      posthog?.capture('essay_created', { source_type: fileState.sourceType })
       router.push(`/essays/${essay.id}`)
       router.refresh()
     } catch (err) {

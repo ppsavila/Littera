@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { usePostHog } from 'posthog-js/react'
 import { useScoringStore } from '@/stores/scoringStore'
 import { CompetencyCard } from './CompetencyCard'
 import { ScoreGauge } from './ScoreGauge'
@@ -46,6 +47,7 @@ export function ScoringPanel({ essay, fullWidth = false, canAiAnalysis }: Props)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [upgradeReason, setUpgradeReason] = useState<'ai_analysis' | 'daily_limit'>('ai_analysis')
   const supabase = createClient()
+  const posthog = usePostHog()
 
   async function handleSave() {
     if (saveState === 'saving') return
@@ -129,6 +131,9 @@ export function ScoringPanel({ essay, fullWidth = false, canAiAnalysis }: Props)
               appendStreamingText(event.text)
             } else if (event.type === 'done') {
               setAIAnalysis(event.analysis)
+              posthog?.capture('essay_analyzed', {
+                competencies_count: Object.keys(event.analysis.competencies ?? {}).length,
+              })
             } else if (event.type === 'error') {
               throw new Error(event.message)
             }
