@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X, Check, Zap, Crown, Star, AlertCircle, Loader2 } from 'lucide-react'
 import { PLANS, type Plan } from '@/lib/subscriptions/plans'
+import { usePostHog } from 'posthog-js/react'
 
 function formatCpf(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 11)
@@ -109,12 +110,19 @@ const WELCOME_PLAN_COLORS: Record<Plan, { icon: string; border: string; bg: stri
   },
 }
 
+function mapReasonToTrigger(reason: UpgradeReason): string {
+  if (reason === 'daily_limit') return 'limit_reached'
+  if (reason === 'welcome') return 'manual'
+  return 'feature_gate'
+}
+
 export function UpgradeModal({ open, onClose, reason = 'daily_limit', currentPlan = 'free' }: UpgradeModalProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [pendingPlan, setPendingPlan] = useState<'plus' | 'premium' | null>(null)
   const [cpf, setCpf] = useState('')
   const copy = REASON_COPY[reason]
+  const posthog = usePostHog()
 
   useEffect(() => {
     if (!open) {
@@ -123,6 +131,12 @@ export function UpgradeModal({ open, onClose, reason = 'daily_limit', currentPla
       setError('')
     }
   }, [open])
+
+  useEffect(() => {
+    if (open && posthog) {
+      posthog.capture('upgrade_modal_opened', { trigger: mapReasonToTrigger(reason) })
+    }
+  }, [open, posthog, reason])
 
   function handleClose() {
     setPendingPlan(null)
@@ -135,6 +149,7 @@ export function UpgradeModal({ open, onClose, reason = 'daily_limit', currentPla
 
   function handleUpgrade(plan: 'plus' | 'premium') {
     setPendingPlan(plan)
+    posthog?.capture('upgrade_cta_clicked', { target_plan: plan })
     setCpf('')
     setError('')
   }

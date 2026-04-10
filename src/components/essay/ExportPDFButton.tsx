@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Download, Loader2 } from 'lucide-react'
+import { usePostHog } from 'posthog-js/react'
 import { useScoringStore } from '@/stores/scoringStore'
 import { useErrorMarkerStore } from '@/stores/errorMarkerStore'
 import { useAnnotationStore } from '@/stores/annotationStore'
@@ -406,6 +407,7 @@ export function ExportPDFButton({ essay }: Props) {
   const { markers } = useErrorMarkerStore()
   const { annotations } = useAnnotationStore()
   const { totalPages } = useViewerStore()
+  const posthog = usePostHog()
 
   async function handleExport() {
     setExporting(true)
@@ -413,6 +415,7 @@ export function ExportPDFButton({ essay }: Props) {
       const bytes = await generatePdfBytes(
         essay, scores, notes, generalComment, getTotalScore(), markers, annotations, totalPages,
       )
+      posthog?.capture('export_triggered', { format: 'pdf' })
       const blob = new Blob([bytes.buffer as ArrayBuffer], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
