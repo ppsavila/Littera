@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-last_updated: "2026-04-09T21:53:35.316Z"
+last_updated: "2026-04-10T15:47:01.433Z"
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 17
-  completed_plans: 16
+  total_plans: 19
+  completed_plans: 17
 ---
 
 # Project State
@@ -20,7 +20,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-03-28)
 
 **Core value:** O professor consegue corrigir uma redação com qualidade e velocidade — da análise à entrega do feedback ao aluno.
-**Current focus:** Phase 06 — ui-readability
+**Current focus:** Phase 07 — product-analytics
 
 ## Current Phase
 
@@ -72,6 +72,7 @@ Status: Complete — Plan 04-01 and 04-02 complete (2/2 plans done)
 - [Phase 05-03]: handleClose wraps onClose to always reset CPF state on modal dismiss — prevents stale CPF on reopen
 - [Phase 06-02]: Plus card bg changed from #faf5ff to #f5f0ff for stronger purple tint, combined with shadow-md elevation to differentiate from Free/Premium cards
 - [Phase 06-02]: Established slate-dark convention: body-size informational text on parchment must use var(--littera-slate-dark), never var(--littera-slate)
+- [Phase 07-product-analytics]: posthog.init in useEffect not module level to avoid React 19 hydration mismatch; autocapture:false and capture_pageview:false for full event control; posthog.reset() on logout
 
 ## Notes
 
