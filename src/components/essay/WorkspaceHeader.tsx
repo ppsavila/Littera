@@ -13,6 +13,7 @@ import { useViewerStore } from '@/stores/viewerStore'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
+import { usePostHog } from 'posthog-js/react'
 import type { Essay } from '@/types/essay'
 
 interface Props {
@@ -64,6 +65,7 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const supabase = createClient()
   const router = useRouter()
+  const posthog = usePostHog()
 
   async function handleWhatsApp() {
     setSendingWA(true)
@@ -78,6 +80,7 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
         ? `${text}\n\n📄 *PDF da correção:*\n${pdfUrl}`
         : text
       window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
+      posthog?.capture('export_triggered', { format: 'whatsapp' })
     } catch (err) {
       console.error('WhatsApp share failed:', err)
       // Fallback: send text-only
