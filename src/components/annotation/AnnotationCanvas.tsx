@@ -5,6 +5,7 @@ import { Stage, Layer, Line, Rect, Arrow, Text, Circle } from 'react-konva'
 import { useAnnotationStore } from '@/stores/annotationStore'
 import { createClient } from '@/lib/supabase/client'
 import { ShapeControlsPanel } from './ShapeControlsPanel'
+import { usePostHog } from 'posthog-js/react'
 import type Konva from 'konva'
 import type { Annotation, ShapeData } from '@/types/annotation'
 
@@ -68,6 +69,7 @@ export function AnnotationCanvas({
   } | null>(null)
 
   const supabase = createClient()
+  const posthog = usePostHog()
   const pageAnnotations = annotations[pageNumber] ?? []
 
   // Normalize coords (absolute → 0-1 relative to natural page size)
@@ -131,6 +133,7 @@ export function AnnotationCanvas({
 
     if (!error && data) {
       replaceAnnotation(tempId, data as Annotation, pageNumber)
+      posthog?.capture('annotation_used', { tool_type: type })
     } else {
       // Roll back on failure
       removeAnnotation(tempId, pageNumber)
