@@ -27,12 +27,12 @@ function colorToLittera(hex: string): { light: string; border: string; text: str
     '#3B82F6': { light: 'var(--littera-sky-light)',    border: 'rgba(3,105,161,0.20)',   text: 'var(--littera-sky)',    solid: 'var(--littera-sky)'    },
     '#10B981': { light: 'var(--littera-teal-light)',   border: 'rgba(15,118,110,0.20)',  text: 'var(--littera-teal)',   solid: 'var(--littera-teal)'   },
     '#F59E0B': { light: 'var(--littera-gold-light)',   border: 'rgba(201,134,10,0.20)',  text: 'var(--littera-gold)',   solid: 'var(--littera-gold)'   },
-    '#8B5CF6': { light: 'var(--littera-forest-light)', border: 'rgba(26,77,58,0.20)',    text: 'var(--littera-forest)', solid: 'var(--littera-forest)' },
+    '#8B5CF6': { light: 'var(--littera-forest-light)', border: 'rgba(75,0,130,0.20)',    text: 'var(--littera-forest)', solid: 'var(--littera-forest)' },
     '#EF4444': { light: 'var(--littera-rose-light)',   border: 'rgba(190,18,60,0.20)',   text: 'var(--littera-rose)',   solid: 'var(--littera-rose)'   },
   }
   return map[hex] ?? {
     light: 'var(--littera-forest-light)',
-    border: 'rgba(26,77,58,0.20)',
+    border: 'rgba(75,0,130,0.20)',
     text: 'var(--littera-forest)',
     solid: 'var(--littera-forest)',
   }

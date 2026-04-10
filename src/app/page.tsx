@@ -91,7 +91,7 @@ export default async function HomePage() {
               style={{
                 background: 'var(--littera-forest-light)',
                 color: 'var(--littera-forest)',
-                border: '1px solid rgba(26,77,58,0.20)',
+                border: '1px solid rgba(75,0,130,0.20)',
               }}
             >
               <span
@@ -278,7 +278,7 @@ export default async function HomePage() {
                   className="w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0"
                   style={{
                     background: 'var(--littera-forest-light)',
-                    border: '1px solid rgba(26,77,58,0.15)',
+                    border: '1px solid rgba(75,0,130,0.15)',
                   }}
                 >
                   <Icon className="w-5 h-5" style={{ color: 'var(--littera-forest)', width: 20, height: 20 }} />

@@ -11,11 +11,22 @@
   --littera-parchment:     #FDFAF5;
   --littera-paper:         #FFFFFF;
 
-  --littera-forest:        #1A4D3A;
-  --littera-forest-mid:    #2D6B52;
-  --littera-forest-light:  #E8F4EE;
-  --littera-forest-faint:  #F2FAF6;
-  --littera-moss:          #4A7C59;
+  /* Roxo Etéreo — primary brand purple */
+  --littera-forest:        #4B1982;
+  --littera-forest-mid:    #6B2CA8;
+  --littera-forest-light:  #EDE9FE;
+  --littera-forest-faint:  #F5F3FF;
+  --littera-moss:          #7C3AED;
+
+  /* Verde — logo pen nib (CTA) + Verde Matchá (accent) */
+  --littera-green:         #2A8B35;
+  --littera-green-mid:     #1E6A22;
+  --littera-green-light:   #DCFCE7;
+  --littera-matchá:        #3B5223;
+
+  /* Brand palette accents */
+  --littera-vanilla:       #FFFFC1;
+  --littera-lavender:      #83A5C1;
 
   --littera-gold:          #C9860A;
   --littera-gold-mid:      #E09B20;
@@ -91,9 +102,14 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Display / serif font class */
+/* Display / title font class — Montserrat */
 .font-display {
-  font-family: var(--font-display), 'Georgia', 'Times New Roman', serif;
+  font-family: var(--font-display), 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Brand wordmark / script accent — Pacifico */
+.font-brand {
+  font-family: var(--font-brand), cursive;
 }
 
 /* ─── Littera Cards ───────────────────────────────────────────── */
@@ -115,7 +131,7 @@ html, body {
 .littera-card-forest {
   background: var(--littera-forest-faint);
   border-radius: 12px;
-  border: 1px solid rgba(26,77,58,0.18);
+  border: 1px solid rgba(75,0,130,0.18);
   box-shadow: var(--littera-shadow-sm);
 }
 
@@ -148,14 +164,14 @@ html, body {
 }
 
 .littera-btn-primary {
-  background: var(--littera-forest);
-  border-color: var(--littera-forest-mid);
+  background: var(--littera-green);
+  border-color: var(--littera-green-mid);
   color: #fff;
-  box-shadow: 0 1px 3px rgba(26,77,58,0.30), inset 0 1px 0 rgba(255,255,255,0.08);
+  box-shadow: 0 1px 3px rgba(42,139,53,0.35), inset 0 1px 0 rgba(255,255,255,0.10);
 }
 .littera-btn-primary:hover:not(:disabled) {
-  background: var(--littera-moss);
-  box-shadow: 0 3px 10px rgba(26,77,58,0.28);
+  background: var(--littera-green-mid);
+  box-shadow: 0 3px 10px rgba(42,139,53,0.30);
 }
 
 .littera-btn-gold {
@@ -212,7 +228,7 @@ html, body {
 }
 .littera-input:focus {
   border-color: var(--littera-forest);
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.03), 0 0 0 3px rgba(26,77,58,0.12);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.03), 0 0 0 3px rgba(75,25,130,0.12);
 }
 .littera-input::placeholder { color: var(--littera-slate); }
 

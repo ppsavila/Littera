@@ -123,7 +123,7 @@ export function ProfileForm({ initialData, email, onboarding }: ProfileFormProps
           className="text-sm px-4 py-3 rounded-lg flex items-center gap-2"
           style={{
             background: 'var(--littera-forest-light)',
-            border: '1px solid rgba(26,77,58,0.20)',
+            border: '1px solid rgba(75,0,130,0.20)',
             color: 'var(--littera-forest)',
           }}
         >

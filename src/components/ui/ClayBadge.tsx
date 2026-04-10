@@ -10,7 +10,7 @@ interface ClayBadgeProps extends HTMLAttributes<HTMLSpanElement> {
 
 const colorStyles: Record<BadgeColor, { bg: string; border: string; text: string }> = {
   // Littera palette
-  forest: { bg: 'var(--littera-forest-light)', border: 'rgba(26,77,58,0.30)',  text: 'var(--littera-forest)'     },
+  forest: { bg: 'var(--littera-forest-light)', border: 'rgba(75,0,130,0.30)',  text: 'var(--littera-forest)'     },
   gold:   { bg: 'var(--littera-gold-light)',   border: 'rgba(201,134,10,0.30)', text: 'var(--littera-gold)'       },
   teal:   { bg: 'var(--littera-teal-light)',   border: 'rgba(15,118,110,0.30)', text: 'var(--littera-teal)'       },
   amber:  { bg: 'var(--littera-amber-light)',  border: 'rgba(180,83,9,0.30)',  text: 'var(--littera-amber)'      },
@@ -19,7 +19,7 @@ const colorStyles: Record<BadgeColor, { bg: string; border: string; text: string
   sky:    { bg: 'var(--littera-sky-light)',    border: 'rgba(3,105,161,0.30)', text: 'var(--littera-sky)'        },
   gray:   { bg: 'var(--littera-mist)',         border: 'var(--littera-dust)',  text: 'var(--littera-slate)'      },
   // Backward-compat aliases
-  coral:  { bg: 'var(--littera-forest-light)', border: 'rgba(26,77,58,0.30)',  text: 'var(--littera-forest)'     },
+  coral:  { bg: 'var(--littera-forest-light)', border: 'rgba(75,0,130,0.30)',  text: 'var(--littera-forest)'     },
   purple: { bg: 'var(--littera-gold-light)',   border: 'rgba(201,134,10,0.30)', text: 'var(--littera-gold)'       },
   mint:   { bg: 'var(--littera-teal-light)',   border: 'rgba(15,118,110,0.30)', text: 'var(--littera-teal)'       },
   yellow: { bg: 'var(--littera-amber-light)',  border: 'rgba(180,83,9,0.30)',  text: 'var(--littera-amber)'      },

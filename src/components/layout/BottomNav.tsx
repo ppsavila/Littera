@@ -60,7 +60,7 @@ export function BottomNav() {
           className="w-10 h-10 rounded-full flex items-center justify-center -mt-5"
           style={{
             background: 'var(--littera-forest)',
-            boxShadow: '0 4px 14px rgba(26,77,58,0.40)',
+            boxShadow: '0 4px 14px rgba(75,0,130,0.40)',
             border: '2px solid var(--littera-parchment)',
           }}
         >

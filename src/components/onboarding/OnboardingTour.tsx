@@ -158,7 +158,7 @@ export function OnboardingTour() {
             width: spot.width,
             height: spot.height,
             outline: '2px solid var(--littera-forest)',
-            boxShadow: '0 0 0 3px rgba(26,77,58,0.15)',
+            boxShadow: '0 0 0 3px rgba(75,0,130,0.15)',
           }}
         />
       )}

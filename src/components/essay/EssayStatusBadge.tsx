@@ -29,7 +29,7 @@ const STATUS_CONFIG: Record<EssayStatus, BadgeConfig> = {
   correcting: {
     label: 'Em revisão',
     bg: 'var(--littera-forest-light)',
-    border: 'rgba(26,77,58,0.25)',
+    border: 'rgba(75,0,130,0.25)',
     color: 'var(--littera-forest)',
   },
   done:       {

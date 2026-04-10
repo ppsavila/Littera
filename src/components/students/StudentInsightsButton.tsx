@@ -87,7 +87,7 @@ export function StudentInsightsButton({ studentId, studentName, essayCount, canS
         style={{
           background: essayCount >= 2 ? 'var(--littera-forest-light)' : 'var(--littera-mist)',
           color: essayCount >= 2 ? 'var(--littera-forest)' : 'var(--littera-dust)',
-          border: `1px solid ${essayCount >= 2 ? 'rgba(26,77,58,0.2)' : 'var(--littera-dust)'}`,
+          border: `1px solid ${essayCount >= 2 ? 'rgba(75,0,130,0.2)' : 'var(--littera-dust)'}`,
           cursor: essayCount < 2 ? 'not-allowed' : 'pointer',
         }}
       >
