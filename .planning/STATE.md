@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-last_updated: "2026-04-10T15:51:57.384Z"
+last_updated: "2026-04-11T02:10:02.586Z"
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 19
-  completed_plans: 18
+  total_plans: 20
+  completed_plans: 19
 ---
 
 # Project State
@@ -76,6 +76,7 @@ Status: Complete — Plan 04-01 and 04-02 complete (2/2 plans done)
 - [Phase 07-product-analytics]: mapReasonToTrigger helper co-located with UpgradeModal — single consumer, no shared module needed
 - [Phase 07-product-analytics]: FeatureLockBadge feature prop optional — backward-compatible, existing callers unchanged
 - [Phase 07-product-analytics]: export_triggered fires only in success path of handleWhatsApp, not in catch fallback
+- [Phase 07-product-analytics]: Manual useEffect capture for pricing_page_viewed is intentional — capture_pageview:false in PostHog init means SPA page views inside /dashboard must be captured manually
 
 ## Notes
 

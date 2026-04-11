@@ -179,11 +179,12 @@ Plans:
 
 **Requirements:** ANA-01, ANA-02, ANA-03
 
-**Plans:** 1/2 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 07-01-PLAN.md — PostHog SDK foundation: provider, page tracking, user identify, CSP, logout reset (ANA-01)
 - [x] 07-02-PLAN.md — Event instrumentation: 7 events across 7 components (ANA-02, ANA-03)
+- [x] 07-03-PLAN.md — Gap closure: pricing_page_viewed event + ANA requirements documentation (ANA-01, ANA-02, ANA-03)
 
 **Deliverables:**
 - PostHog instalado e inicializado (NEXT_PUBLIC_POSTHOG_KEY + NEXT_PUBLIC_POSTHOG_HOST)
@@ -218,8 +219,8 @@ Plans:
 | 4 | Export Upgrade | EXP-01-05 | Complete — 2026-03-29 |
 | 5 | Plans & Paywall | PLAN-01-04 | Complete — 2026-03-30 |
 | 6 | UI Readability | UI-01-04 | Complete — 2026-04-09 |
-| 7 | 1/2 | In Progress|  |
+| 7 | 3/3 | Complete   | 2026-04-11 |
 
 ---
 *Roadmap created: 2026-03-28*
-*Last updated: 2026-04-10 — Phase 7 plans created*
+*Last updated: 2026-04-10 — Phase 7 gap closure plan added*
