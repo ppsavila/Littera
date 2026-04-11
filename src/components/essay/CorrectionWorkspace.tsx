@@ -142,7 +142,7 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
       {/* ── Desktop layout ── */}
       <div className="hidden sm:flex flex-1 overflow-hidden">
         {/* Left: vertical annotation toolbar */}
-        <AnnotationToolbar />
+        <AnnotationToolbar canEditText={essay.source_type === 'image' && !!essay.raw_text} />
 
         {/* Center: document */}
         <div
@@ -199,7 +199,7 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
         {mobileTab === 'document' && (
           <div className="flex flex-col flex-1 overflow-hidden">
             {/* Mini horizontal tool strip */}
-            <AnnotationToolbarMobile />
+            <AnnotationToolbarMobile canEditText={essay.source_type === 'image' && !!essay.raw_text} />
             {/* Document */}
             <div
               className="flex-1 overflow-auto relative"

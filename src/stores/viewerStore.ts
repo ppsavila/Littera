@@ -7,6 +7,7 @@ interface ViewerState {
   isLoading: boolean
   pageDimensions: Record<number, { width: number; height: number }>
   pageCanvases: Record<number, HTMLCanvasElement>
+  isTextEditMode: boolean
 
   setZoom: (zoom: number) => void
   setCurrentPage: (page: number) => void
@@ -17,6 +18,7 @@ interface ViewerState {
   zoomIn: () => void
   zoomOut: () => void
   resetZoom: () => void
+  setIsTextEditMode: (v: boolean) => void
 }
 
 const ZOOM_STEP = 0.25
@@ -30,6 +32,7 @@ export const useViewerStore = create<ViewerState>((set, get) => ({
   isLoading: true,
   pageDimensions: {},
   pageCanvases: {},
+  isTextEditMode: false,
 
   setZoom: (zoom) => set({ zoom: Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom)) }),
   setCurrentPage: (currentPage) => set({ currentPage }),
@@ -57,4 +60,5 @@ export const useViewerStore = create<ViewerState>((set, get) => ({
   },
 
   resetZoom: () => set({ zoom: 1 }),
+  setIsTextEditMode: (isTextEditMode) => set({ isTextEditMode }),
 }))
