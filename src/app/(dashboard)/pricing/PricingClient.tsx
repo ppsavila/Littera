@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, Zap, Crown, Loader2, Star, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { usePostHog } from 'posthog-js/react'
 import { PLANS, type Plan } from '@/lib/subscriptions/plans'
 
 interface PricingClientProps {
@@ -89,6 +90,7 @@ function isValidCpf(digits: string): boolean {
 
 export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan, subscriptionStatus, subscriptionExpiresAt }: PricingClientProps) {
   const router = useRouter()
+  const posthog = usePostHog()
   const [loading, setLoading] = useState<Plan | null>(null)
   const [error, setError] = useState('')
   const [pendingPlan, setPendingPlan] = useState<Plan | null>(null)
@@ -99,6 +101,10 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan, 
   const [cancelling, setCancelling] = useState(false)
   const [cancelledUntil, setCancelledUntil] = useState<string | null>(null)
   const [activeStatus, setActiveStatus] = useState(subscriptionStatus)
+
+  useEffect(() => {
+    posthog?.capture('pricing_page_viewed')
+  }, [posthog])
 
   useEffect(() => {
     if (!successPlan) return
