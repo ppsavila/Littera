@@ -14,7 +14,9 @@ import {
   Minus,
   Plus,
   AlertTriangle,
+  Pencil,
 } from 'lucide-react'
+import { useViewerStore } from '@/stores/viewerStore'
 import type { AnnotationTool } from '@/types/annotation'
 
 const TOOLS: { tool: AnnotationTool; label: string; icon: React.ElementType; shortcut: string }[] = [
@@ -27,11 +29,16 @@ const TOOLS: { tool: AnnotationTool; label: string; icon: React.ElementType; sho
   { tool: 'eraser',    label: 'Apagar',   icon: Eraser,        shortcut: 'X' },
 ]
 
+interface ToolbarProps {
+  canEditText?: boolean
+}
+
 /** Desktop vertical toolbar — hidden on mobile */
-export function AnnotationToolbar() {
+export function AnnotationToolbar({ canEditText }: ToolbarProps) {
   const { activeTool, setTool, activeColor, setColor, strokeWidth, setStrokeWidth } =
     useAnnotationStore()
   const { isErrorMode, setIsErrorMode, setSelectedErrorCode } = useErrorMarkerStore()
+  const { isTextEditMode, setIsTextEditMode } = useViewerStore()
 
   function selectTool(tool: AnnotationTool) {
     if (isErrorMode) {
@@ -105,6 +112,28 @@ export function AnnotationToolbar() {
           <AlertTriangle className="w-4 h-4" />
         </button>
 
+        {/* Edit text button — only for image essays with extracted text */}
+        {canEditText && (
+          <button
+            onClick={() => {
+              setIsTextEditMode(!isTextEditMode)
+              if (!isTextEditMode) {
+                setIsErrorMode(false)
+                setSelectedErrorCode(null)
+              }
+            }}
+            title="Editar texto"
+            className="w-8 h-8 flex items-center justify-center rounded-lg transition-all"
+            style={
+              isTextEditMode
+                ? { background: 'var(--littera-sky)', color: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }
+                : { color: 'var(--littera-slate)' }
+            }
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+        )}
+
         {/* Divider */}
         <div className="w-6 h-px" style={{ background: 'var(--littera-dust)' }} />
 
@@ -161,9 +190,10 @@ export function AnnotationToolbar() {
 }
 
 /** Mobile horizontal mini-toolbar */
-export function AnnotationToolbarMobile() {
+export function AnnotationToolbarMobile({ canEditText }: ToolbarProps) {
   const { activeTool, setTool, activeColor, setColor } = useAnnotationStore()
   const { isErrorMode, setIsErrorMode, setSelectedErrorCode } = useErrorMarkerStore()
+  const { isTextEditMode, setIsTextEditMode } = useViewerStore()
 
   const mobileTools = TOOLS.filter((t) =>
     ['pan', 'highlight', 'freehand', 'marker', 'eraser'].includes(t.tool)
@@ -227,6 +257,31 @@ export function AnnotationToolbarMobile() {
       >
         <AlertTriangle className="w-4 h-4" />
       </button>
+
+      {/* Edit text button — mobile */}
+      {canEditText && (
+        <>
+          <div className="w-px h-5 flex-shrink-0 mx-1" style={{ background: 'var(--littera-dust)' }} />
+          <button
+            onClick={() => {
+              setIsTextEditMode(!isTextEditMode)
+              if (!isTextEditMode) {
+                setIsErrorMode(false)
+                setSelectedErrorCode(null)
+              }
+            }}
+            title="Editar texto"
+            className="w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0 transition-all"
+            style={
+              isTextEditMode
+                ? { background: 'var(--littera-sky)', color: '#fff' }
+                : { color: 'var(--littera-slate)' }
+            }
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+        </>
+      )}
 
       {/* Divider */}
       <div className="w-px h-5 flex-shrink-0 mx-1" style={{ background: 'var(--littera-dust)' }} />
