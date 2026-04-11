@@ -44,6 +44,12 @@
 - [x] **PLAN-03**: Ao bater o paywall, exibe modal de upgrade com benefícios dos planos
 - [x] **PLAN-04**: Indicadores visuais de feature Premium no fluxo (tooltip/lock antes de usar)
 
+### Product Analytics
+
+- [x] **ANA-01**: PostHog SDK inicializado com provider, page tracking SPA, user identification (plan + created_at), CSP atualizado, e posthog.reset() no logout
+- [x] **ANA-02**: Eventos de produto instrumentados nos pontos-chave: essay_created, essay_analyzed, annotation_used, export_triggered, upgrade_modal_opened, upgrade_cta_clicked, pricing_page_viewed, feature_gate_hit
+- [x] **ANA-03**: Nenhum evento contém PII (email, CPF, nome de aluno) — apenas IDs, planos e tipos
+
 ## v2 Requirements
 
 ### Advanced Annotation
@@ -98,10 +104,13 @@
 | PLAN-02 | Phase 5 | Pending |
 | PLAN-03 | Phase 5 | Complete |
 | PLAN-04 | Phase 5 | Complete |
+| ANA-01 | Phase 7 | Complete |
+| ANA-02 | Phase 7 | Complete |
+| ANA-03 | Phase 7 | Complete |
 
 **Coverage:**
-- v1 requirements: 24 total
-- Mapped to phases: 24
+- v1 requirements: 27 total
+- Mapped to phases: 27
 - Unmapped: 0 ✓
 
 ---
