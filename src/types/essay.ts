@@ -24,6 +24,9 @@ export interface Essay {
   notes_c5: string | null
   general_comment: string | null
   ai_analysis: AIAnalysis | null
+  share_token: string | null
+  is_shared: boolean
+  share_doc_url: string | null
   created_at: string
   updated_at: string
   student?: Student
