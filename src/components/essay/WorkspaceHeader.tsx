@@ -29,6 +29,24 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
   const supabase = createClient()
   const posthog = usePostHog()
 
+  // ── Auto-show result modal when opening a completed essay ────────────────────
+  useEffect(() => {
+    if (essay.status !== 'done') return
+    const score = (essay.score_c1 ?? 0) + (essay.score_c2 ?? 0) + (essay.score_c3 ?? 0) +
+                  (essay.score_c4 ?? 0) + (essay.score_c5 ?? 0)
+    if (essay.share_token) {
+      // Already has a token — reconstruct URL without hitting the API
+      const origin = window.location.origin
+      setResultModal({ shareUrl: `${origin}/c/${essay.share_token}`, totalScore: score })
+    } else {
+      // No token yet — call share API (idempotent)
+      enableShare().then((shareUrl) => {
+        if (shareUrl) setResultModal({ shareUrl, totalScore: score })
+      })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // only on mount
+
   // ── Enable sharing and return share URL ─────────────────────────────────────
   async function enableShare(): Promise<string | null> {
     try {

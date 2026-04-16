@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createServiceClient } from '@/lib/supabase/service'
 import { notFound } from 'next/navigation'
 import { SharedEssayView } from '@/components/essay/SharedEssayView'
 import type { Essay } from '@/types/essay'
@@ -11,15 +11,15 @@ interface Props {
 /**
  * Public shared essay page — no auth required.
  * URL: /c/<share_token>
+ *
+ * Uses the service client (bypasses RLS) because:
+ * 1. We enforce access ourselves via is_shared = true check.
+ * 2. Avoids depending on RLS anon policies being configured.
+ * This is safe: only essays explicitly shared by their owner are visible.
  */
 export default async function SharedEssayPage({ params }: Props) {
   const { token } = await params
-
-  // Use anon client — RLS policies handle access control
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
+  const supabase = createServiceClient()
 
   const { data: essay } = await supabase
     .from('essays')
@@ -47,10 +47,8 @@ export default async function SharedEssayPage({ params }: Props) {
 
 export async function generateMetadata({ params }: Props) {
   const { token } = await params
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
+  const supabase = createServiceClient()
+
   const { data: essay } = await supabase
     .from('essays')
     .select('title, theme, score_c1, score_c2, score_c3, score_c4, score_c5')
@@ -60,9 +58,12 @@ export async function generateMetadata({ params }: Props) {
 
   if (!essay) return { title: 'Correção não encontrada — Littera' }
 
-  const total = (essay.score_c1 ?? 0) + (essay.score_c2 ?? 0) + (essay.score_c3 ?? 0) + (essay.score_c4 ?? 0) + (essay.score_c5 ?? 0)
+  const total = (essay.score_c1 ?? 0) + (essay.score_c2 ?? 0) + (essay.score_c3 ?? 0) +
+                (essay.score_c4 ?? 0) + (essay.score_c5 ?? 0)
   return {
     title: `${essay.title} — Correção (${total}/1000) | Littera`,
-    description: essay.theme ? `Tema: ${essay.theme} · Nota: ${total}/1000` : `Nota final: ${total}/1000`,
+    description: essay.theme
+      ? `Tema: ${essay.theme} · Nota: ${total}/1000`
+      : `Nota final: ${total}/1000`,
   }
 }
