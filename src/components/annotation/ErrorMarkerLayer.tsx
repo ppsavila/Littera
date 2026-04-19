@@ -138,6 +138,48 @@ export function ErrorMarkerLayer({ essayId, pageNumber, width, height, readOnly 
     if (!isErrorMode) window.getSelection()?.removeAllRanges()
   }, [isErrorMode])
 
+  // Persists a new marker to DB and triggers the optional note popover
+  const saveMarker = useCallback(
+    async (
+      { x, y, x2, y2, selectedText, rects }: {
+        x: number; y: number; x2: number | null; y2: number | null
+        selectedText: string | null; rects: import('@/types/error-marker').MarkerRect[] | null
+      },
+      badgeLeft: number,
+      badgeTop: number,
+    ) => {
+      const competency = findCompetency(selectedErrorCode!)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data, error } = await supabase
+        .from('error_markers')
+        .insert({
+          essay_id: essayId,
+          teacher_id: user.id,
+          page_number: pageNumber,
+          x, y, x2, y2,
+          rects: rects ?? null,
+          selected_text: selectedText,
+          error_code: selectedErrorCode,
+          competency,
+        })
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Erro ao salvar marcador:', error.message)
+        return
+      }
+      if (data) {
+        addMarker(data as ErrorMarker)
+        // Prompt for optional note
+        setPendingNote({ markerId: data.id, badgeLeft, badgeTop })
+      }
+    },
+    [supabase, selectedErrorCode, essayId, pageNumber, addMarker],
+  )
+
   // Document-level mouseup: captures text selections and point clicks
   const handleDocMouseUp = useCallback(
     async (e: MouseEvent) => {
@@ -206,51 +248,13 @@ export function ErrorMarkerLayer({ essayId, pageNumber, width, height, readOnly 
         )
       }
     },
-    [isErrorMode, selectedErrorCode, width, height]
+    [isErrorMode, selectedErrorCode, width, height, saveMarker],
   )
 
   useEffect(() => {
     document.addEventListener('mouseup', handleDocMouseUp)
     return () => document.removeEventListener('mouseup', handleDocMouseUp)
   }, [handleDocMouseUp])
-
-  async function saveMarker(
-    { x, y, x2, y2, selectedText, rects }: {
-      x: number; y: number; x2: number | null; y2: number | null
-      selectedText: string | null; rects: import('@/types/error-marker').MarkerRect[] | null
-    },
-    badgeLeft: number,
-    badgeTop: number,
-  ) {
-    const competency = findCompetency(selectedErrorCode!)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    const { data, error } = await supabase
-      .from('error_markers')
-      .insert({
-        essay_id: essayId,
-        teacher_id: user.id,
-        page_number: pageNumber,
-        x, y, x2, y2,
-        rects: rects ?? null,
-        selected_text: selectedText,
-        error_code: selectedErrorCode,
-        competency,
-      })
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Erro ao salvar marcador:', error.message)
-      return
-    }
-    if (data) {
-      addMarker(data as ErrorMarker)
-      // Prompt for optional note
-      setPendingNote({ markerId: data.id, badgeLeft, badgeTop })
-    }
-  }
 
   async function handleNoteConfirm(note: string) {
     if (!pendingNote) return
