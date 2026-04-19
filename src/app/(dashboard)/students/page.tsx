@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import { Users } from 'lucide-react'
+import { Users, LineChart } from 'lucide-react'
+import Link from 'next/link'
 import { StudentInsightsButton } from '@/components/students/StudentInsightsButton'
 import { canUseFeature } from '@/lib/subscriptions/access'
 
@@ -118,6 +119,21 @@ export default async function StudentsPage() {
                     essayCount={essayCount}
                     canStudentInsights={canStudentInsights}
                   />
+                  {essayCount > 0 && (
+                    <Link
+                      href={`/dashboard/students/${student.id}/insights`}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
+                      style={{
+                        background: 'var(--littera-mist)',
+                        color: 'var(--littera-slate)',
+                        border: '1px solid var(--littera-dust)',
+                      }}
+                      title={`Ver painel de insights de ${student.name}`}
+                    >
+                      <LineChart className="w-3 h-3" />
+                      Painel
+                    </Link>
+                  )}
                 </div>
               </div>
             )
