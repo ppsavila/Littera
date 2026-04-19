@@ -62,15 +62,12 @@ interface SpotRect {
 
 export function OnboardingTour() {
   const [step, setStep] = useState(0)
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return !localStorage.getItem(STORAGE_KEY)
+  })
   const [spot, setSpot] = useState<SpotRect | null>(null)
   const [vp, setVp] = useState({ w: 0, h: 0 })
-
-  useEffect(() => {
-    if (!localStorage.getItem(STORAGE_KEY)) {
-      setVisible(true)
-    }
-  }, [])
 
   useEffect(() => {
     if (!visible) return
