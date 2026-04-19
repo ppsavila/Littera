@@ -13,6 +13,36 @@ import { POST as analyzeHandler } from '@/app/api/essays/[id]/analyze/route'
 import { createMockSupabaseClient, mockUser } from '../fixtures/supabase'
 import { VALID_ESSAY_CREATE_BODY, createMockEssay } from '../fixtures/essay'
 
+// ─── Typed aliases for mock casts ───────────────────────────────────────────
+// The real clients use complex generic Supabase types. We cast through
+// `unknown` so TypeScript accepts our partial mocks without `any`.
+type MockSupabaseClient = ReturnType<typeof createMockSupabaseClient>
+type RealServerClient = Awaited<ReturnType<typeof createClient>>
+type RealServiceClient = ReturnType<typeof createServiceClient>
+
+/** Minimal service-client stub used where only `rpc` is needed. */
+interface MockServiceClient {
+  rpc: ReturnType<typeof vi.fn>
+}
+
+/** Minimal storage bucket stub used for storage.remove assertions. */
+interface MockStorageBucket {
+  remove: ReturnType<typeof vi.fn>
+}
+
+function asServerClient(mock: MockSupabaseClient): RealServerClient {
+  return mock as unknown as RealServerClient
+}
+
+function asServiceClient(mock: MockServiceClient): RealServiceClient {
+  return mock as unknown as RealServiceClient
+}
+
+function asStorageBucket(mock: MockStorageBucket): ReturnType<RealServerClient['storage']['from']> {
+  return mock as unknown as ReturnType<RealServerClient['storage']['from']>
+}
+// ────────────────────────────────────────────────────────────────────────────
+
 const ESSAY_ID = 'essay-001'
 const essayParams = { params: Promise.resolve({ id: ESSAY_ID }) }
 
@@ -39,8 +69,8 @@ describe('POST /api/essays', () => {
 
   it('returns 201 with essay id on valid input', async () => {
     const mockClient = createMockSupabaseClient({ user: mockUser, insertData: { id: 'new-id' } })
-    vi.mocked(createClient).mockResolvedValue(mockClient as any)
-    vi.mocked(createServiceClient).mockReturnValue({ rpc: vi.fn().mockResolvedValue({ data: true }) } as any)
+    vi.mocked(createClient).mockResolvedValue(asServerClient(mockClient))
+    vi.mocked(createServiceClient).mockReturnValue(asServiceClient({ rpc: vi.fn().mockResolvedValue({ data: true }) }))
 
     const res = await POST(makeJsonRequest(VALID_ESSAY_CREATE_BODY))
     const body = await res.json()
@@ -51,8 +81,8 @@ describe('POST /api/essays', () => {
 
   it('returns 400 on invalid source_type', async () => {
     const mockClient = createMockSupabaseClient({ user: mockUser })
-    vi.mocked(createClient).mockResolvedValue(mockClient as any)
-    vi.mocked(createServiceClient).mockReturnValue({ rpc: vi.fn().mockResolvedValue({ data: true }) } as any)
+    vi.mocked(createClient).mockResolvedValue(asServerClient(mockClient))
+    vi.mocked(createServiceClient).mockReturnValue(asServiceClient({ rpc: vi.fn().mockResolvedValue({ data: true }) }))
 
     const res = await POST(makeJsonRequest({ title: 'Test', source_type: 'invalid' }))
 
@@ -61,8 +91,8 @@ describe('POST /api/essays', () => {
 
   it('returns 400 on invalid JSON body', async () => {
     const mockClient = createMockSupabaseClient({ user: mockUser })
-    vi.mocked(createClient).mockResolvedValue(mockClient as any)
-    vi.mocked(createServiceClient).mockReturnValue({ rpc: vi.fn().mockResolvedValue({ data: true }) } as any)
+    vi.mocked(createClient).mockResolvedValue(asServerClient(mockClient))
+    vi.mocked(createServiceClient).mockReturnValue(asServiceClient({ rpc: vi.fn().mockResolvedValue({ data: true }) }))
 
     const res = await POST(makeInvalidJsonRequest())
 
@@ -71,8 +101,8 @@ describe('POST /api/essays', () => {
 
   it('returns 429 when rate limit is exceeded', async () => {
     const mockClient = createMockSupabaseClient({ user: mockUser })
-    vi.mocked(createClient).mockResolvedValue(mockClient as any)
-    vi.mocked(createServiceClient).mockReturnValue({ rpc: vi.fn().mockResolvedValue({ data: false }) } as any)
+    vi.mocked(createClient).mockResolvedValue(asServerClient(mockClient))
+    vi.mocked(createServiceClient).mockReturnValue(asServiceClient({ rpc: vi.fn().mockResolvedValue({ data: false }) }))
 
     const res = await POST(makeJsonRequest(VALID_ESSAY_CREATE_BODY))
 
@@ -84,7 +114,7 @@ describe('PATCH /api/essays/[id]', () => {
   it('returns 200 with updated data on valid partial update', async () => {
     const updatedEssay = createMockEssay({ id: ESSAY_ID, title: 'Updated Title' })
     const mockClient = createMockSupabaseClient({ user: mockUser, selectData: updatedEssay })
-    vi.mocked(createClient).mockResolvedValue(mockClient as any)
+    vi.mocked(createClient).mockResolvedValue(asServerClient(mockClient))
 
     const req = new Request(`http://localhost/api/essays/${ESSAY_ID}`, {
       method: 'PATCH',
@@ -100,7 +130,7 @@ describe('PATCH /api/essays/[id]', () => {
 
   it('returns 400 on empty update body', async () => {
     const mockClient = createMockSupabaseClient({ user: mockUser })
-    vi.mocked(createClient).mockResolvedValue(mockClient as any)
+    vi.mocked(createClient).mockResolvedValue(asServerClient(mockClient))
 
     const req = new Request(`http://localhost/api/essays/${ESSAY_ID}`, {
       method: 'PATCH',
@@ -114,7 +144,7 @@ describe('PATCH /api/essays/[id]', () => {
 
   it('returns 400 when score_c1 exceeds maximum', async () => {
     const mockClient = createMockSupabaseClient({ user: mockUser })
-    vi.mocked(createClient).mockResolvedValue(mockClient as any)
+    vi.mocked(createClient).mockResolvedValue(asServerClient(mockClient))
 
     const req = new Request(`http://localhost/api/essays/${ESSAY_ID}`, {
       method: 'PATCH',
@@ -131,7 +161,7 @@ describe('DELETE /api/essays/[id]', () => {
   it('returns 200 with success:true', async () => {
     const essay = createMockEssay({ id: ESSAY_ID, storage_path: null })
     const mockClient = createMockSupabaseClient({ user: mockUser, selectData: essay })
-    vi.mocked(createClient).mockResolvedValue(mockClient as any)
+    vi.mocked(createClient).mockResolvedValue(asServerClient(mockClient))
 
     const req = new Request(`http://localhost/api/essays/${ESSAY_ID}`, { method: 'DELETE' })
     const res = await DELETE(req, essayParams)
@@ -145,8 +175,8 @@ describe('DELETE /api/essays/[id]', () => {
     const essay = createMockEssay({ id: ESSAY_ID, storage_path: 'essays/test.pdf' })
     const removeSpy = vi.fn().mockResolvedValue({ error: null })
     const mockClient = createMockSupabaseClient({ user: mockUser, selectData: essay })
-    vi.mocked(mockClient.storage.from).mockReturnValue({ remove: removeSpy } as any)
-    vi.mocked(createClient).mockResolvedValue(mockClient as any)
+    vi.mocked(mockClient.storage.from).mockReturnValue(asStorageBucket({ remove: removeSpy }))
+    vi.mocked(createClient).mockResolvedValue(asServerClient(mockClient))
 
     const req = new Request(`http://localhost/api/essays/${ESSAY_ID}`, { method: 'DELETE' })
     await DELETE(req, essayParams)
@@ -158,8 +188,8 @@ describe('DELETE /api/essays/[id]', () => {
     const essay = createMockEssay({ id: ESSAY_ID, storage_path: null })
     const removeSpy = vi.fn().mockResolvedValue({ error: null })
     const mockClient = createMockSupabaseClient({ user: mockUser, selectData: essay })
-    vi.mocked(mockClient.storage.from).mockReturnValue({ remove: removeSpy } as any)
-    vi.mocked(createClient).mockResolvedValue(mockClient as any)
+    vi.mocked(mockClient.storage.from).mockReturnValue(asStorageBucket({ remove: removeSpy }))
+    vi.mocked(createClient).mockResolvedValue(asServerClient(mockClient))
 
     const req = new Request(`http://localhost/api/essays/${ESSAY_ID}`, { method: 'DELETE' })
     await DELETE(req, essayParams)
@@ -176,11 +206,11 @@ describe('POST /api/essays/[id]/analyze', () => {
   it('returns streaming response (not 401 or 500) for authenticated user', async () => {
     const essay = createMockEssay({ id: ESSAY_ID })
     const mockClient = createMockSupabaseClient({ user: mockUser, selectData: essay })
-    vi.mocked(createClient).mockResolvedValue(mockClient as any)
-    vi.mocked(createServiceClient).mockReturnValue({ rpc: vi.fn().mockResolvedValue({ data: true }) } as any)
+    vi.mocked(createClient).mockResolvedValue(asServerClient(mockClient))
+    vi.mocked(createServiceClient).mockReturnValue(asServiceClient({ rpc: vi.fn().mockResolvedValue({ data: true }) }))
 
-    async function* emptyStream() {}
-    vi.mocked(analyzeEssayStream).mockReturnValue(emptyStream() as any)
+    async function* emptyStream(): ReturnType<typeof analyzeEssayStream> { /* empty */ }
+    vi.mocked(analyzeEssayStream).mockReturnValue(emptyStream())
 
     const req = new Request(`http://localhost/api/essays/${ESSAY_ID}/analyze`, { method: 'POST' })
     const res = await analyzeHandler(req, essayParams)
