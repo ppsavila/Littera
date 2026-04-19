@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { UpgradeModal } from './UpgradeModal'
 
 interface Props {
@@ -9,13 +9,7 @@ interface Props {
 }
 
 export function WelcomeModalTrigger({ onboarded, currentPlan = 'free' }: Props) {
-  const [open, setOpen] = useState(false)
-
-  useEffect(() => {
-    if (!onboarded) {
-      setOpen(true)
-    }
-  }, [onboarded])
+  const [open, setOpen] = useState(() => !onboarded)
 
   async function handleClose() {
     setOpen(false)
