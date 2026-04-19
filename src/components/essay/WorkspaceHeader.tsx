@@ -86,12 +86,10 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
       if (res.ok) {
         setWhatsappState('success')
         posthog?.capture('whatsapp_result_sent', { essay_id: essay.id })
-        // Reset to idle after 4 s
         setTimeout(() => setWhatsappState('idle'), 4000)
       } else {
         const body = await res.json().catch(() => ({}))
         const msg = (body as { error?: string }).error ?? 'Erro ao enviar.'
-        // Show error label for 5 s then reset
         setWhatsappState('error')
         console.error('[WhatsApp send-result]', res.status, msg)
         setTimeout(() => setWhatsappState('idle'), 5000)
@@ -102,6 +100,7 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
       setTimeout(() => setWhatsappState('idle'), 5000)
     }
   }
+
 
   // ── Manual share button ──────────────────────────────────────────────────────
   async function handleShare() {
@@ -304,6 +303,7 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
               {whatsappState === 'idle' && 'Enviar ao aluno'}
             </button>
           )}
+
 
           {/* Share link */}
           <button
