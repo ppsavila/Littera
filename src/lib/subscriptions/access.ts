@@ -11,7 +11,9 @@ export interface DailyLimitResult {
 
 /**
  * Checks if the user is within their daily correction limit.
- * If allowed, increments the counter.
+ * If allowed, increments the counter atomically via a PostgreSQL RPC
+ * (check_and_increment_daily_limit) to eliminate the race condition
+ * that allowed concurrent requests to both pass a shared limit.
  * When subscriptions are disabled, always returns allowed.
  */
 export async function checkAndIncrementDailyLimit(userId: string): Promise<DailyLimitResult> {
@@ -22,50 +24,38 @@ export async function checkAndIncrementDailyLimit(userId: string): Promise<Daily
   }
 
   const supabase = await createClient()
+
+  // Read the plan first so we can pass the correct limit to the RPC.
+  // This query is outside the atomic lock, but plan changes are rare
+  // and the RPC itself is the critical section for the counter.
   const { data: profile } = await supabase
     .from('profiles')
-    .select('subscription_plan, daily_corrections_count, daily_corrections_reset_date')
+    .select('subscription_plan')
     .eq('id', userId)
     .single()
 
   if (!profile) return { allowed: false, used: 0, limit: 0, resetDate: today }
 
-  const plan = PLANS[profile.subscription_plan as Plan]
-  const isNewDay = profile.daily_corrections_reset_date !== today
-  const count = isNewDay ? 0 : (profile.daily_corrections_count ?? 0)
+  const plan = PLANS[profile.subscription_plan as Plan] ?? PLANS.free
+  const limit = plan.dailyCorrections
 
-  // Unlimited plan — still track for analytics
-  if (plan.dailyCorrections === -1) {
-    await supabase
-      .from('profiles')
-      .update({ daily_corrections_count: count + 1, daily_corrections_reset_date: today })
-      .eq('id', userId)
-    return { allowed: true, used: count + 1, limit: -1, resetDate: today }
+  const { data: result, error } = await supabase.rpc('check_and_increment_daily_limit', {
+    p_user_id: userId,
+    p_limit: limit,
+    p_today: today,
+  })
+
+  if (error) {
+    // Fail open: if the RPC errors, block the request to avoid silent over-usage
+    return { allowed: false, used: 0, limit, resetDate: today }
   }
 
-  if (count >= plan.dailyCorrections) {
-    // Reset date if it's a new day but already at limit (edge case: same-day reset)
-    if (isNewDay) {
-      await supabase
-        .from('profiles')
-        .update({ daily_corrections_count: 0, daily_corrections_reset_date: today })
-        .eq('id', userId)
-      // After reset, they have 0 used — allow
-      await supabase
-        .from('profiles')
-        .update({ daily_corrections_count: 1, daily_corrections_reset_date: today })
-        .eq('id', userId)
-      return { allowed: true, used: 1, limit: plan.dailyCorrections, resetDate: today }
-    }
-    return { allowed: false, used: count, limit: plan.dailyCorrections, resetDate: today }
+  return {
+    allowed:   result.allowed,
+    used:      result.used,
+    limit:     result.limit,
+    resetDate: result.reset_date,
   }
-
-  await supabase
-    .from('profiles')
-    .update({ daily_corrections_count: count + 1, daily_corrections_reset_date: today })
-    .eq('id', userId)
-
-  return { allowed: true, used: count + 1, limit: plan.dailyCorrections, resetDate: today }
 }
 
 /**
