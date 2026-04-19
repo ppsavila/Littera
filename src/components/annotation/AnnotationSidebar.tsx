@@ -92,7 +92,7 @@ export function AnnotationSidebar({ essayId }: Props) {
                     )}
                     {(ann as Annotation & { shape_data: { text?: string } }).shape_data.text && (
                       <p className="text-xs text-gray-500 truncate">
-                        "{(ann as Annotation & { shape_data: { text?: string } }).shape_data.text}"
+                        &quot;{(ann as Annotation & { shape_data: { text?: string } }).shape_data.text}&quot;
                       </p>
                     )}
                   </div>
@@ -138,7 +138,7 @@ export function AnnotationSidebar({ essayId }: Props) {
                     </div>
                     {marker.selected_text && (
                       <p className="text-xs text-gray-400 truncate italic mt-0.5">
-                        "{marker.selected_text.slice(0, 40)}{marker.selected_text.length > 40 ? '…' : ''}"
+                        &quot;{marker.selected_text.slice(0, 40)}{marker.selected_text.length > 40 ? '…' : ''}&quot;
                       </p>
                     )}
                     <p className="text-xs mt-0.5" style={{ color }}>
