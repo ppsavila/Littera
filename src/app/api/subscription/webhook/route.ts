@@ -32,7 +32,13 @@ export async function POST(request: Request) {
     }
   }
 
-  const body = JSON.parse(rawBody)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let body: any
+  try {
+    body = JSON.parse(rawBody)
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
 
   // Webhook payload: { id, event, apiVersion, devMode, data }
   const event = body?.event as string | undefined
@@ -129,18 +135,24 @@ async function activateSubscription(
   logger.info('webhook.subscription_activated', { userId, plan, expiresAt: expiresAt.toISOString() })
 
   if (paymentId) {
-    // Try to update an existing pending record first; insert if none found
-    const { count } = await supabase
+    // Check whether a pending checkout record exists for this user to update,
+    // rather than relying on `.update()` count which is always null in Supabase JS.
+    const { data: pendingRecord } = await supabase
       .from('subscription_payments')
-      .update({ status: 'paid', payment_id: paymentId, paid_at: new Date().toISOString() })
+      .select('id')
       .eq('user_id', userId)
       .eq('status', 'pending')
       .order('created_at', { ascending: false })
       .limit(1)
-      // Supabase doesn't expose affected rows directly; we'll insert if nothing was updated
+      .maybeSingle()
 
-    if (!count) {
-      // No pending record found — insert directly (renewal or delayed webhook)
+    if (pendingRecord) {
+      await supabase
+        .from('subscription_payments')
+        .update({ status: 'paid', payment_id: paymentId, paid_at: new Date().toISOString() })
+        .eq('id', pendingRecord.id)
+    } else {
+      // No pending record — insert directly (renewal or delayed webhook)
       const { data: profile } = await supabase
         .from('profiles')
         .select('subscription_plan')
@@ -150,7 +162,7 @@ async function activateSubscription(
       await supabase.from('subscription_payments').insert({
         user_id: userId,
         plan: profile?.subscription_plan ?? plan,
-        amount: 0, // amount unknown at this point; will be filled from metadata if needed
+        amount: 0,
         currency: 'BRL',
         status: 'paid',
         payment_id: paymentId,
