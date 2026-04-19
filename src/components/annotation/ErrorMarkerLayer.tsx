@@ -423,9 +423,9 @@ export function ErrorMarkerLayer({ essayId, pageNumber, width, height, readOnly 
                     maxHeight: 64,
                     overflow: 'hidden',
                   }}>
-                    "{marker.selected_text.length > 90
+                    &quot;{marker.selected_text.length > 90
                       ? marker.selected_text.slice(0, 90) + '…'
-                      : marker.selected_text}"
+                      : marker.selected_text}&quot;
                   </div>
                 )}
 

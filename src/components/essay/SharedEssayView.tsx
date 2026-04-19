@@ -269,9 +269,9 @@ export function SharedEssayView({ essay, errorMarkers }: Props) {
                                     lineHeight: 1.5,
                                   }}
                                 >
-                                  "{marker.selected_text.length > 120
+                                  &quot;{marker.selected_text.length > 120
                                     ? marker.selected_text.slice(0, 120) + '…'
-                                    : marker.selected_text}"
+                                    : marker.selected_text}&quot;
                                 </p>
                               )}
                               {marker.note && (
