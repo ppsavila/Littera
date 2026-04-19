@@ -25,7 +25,7 @@ export default async function EssayPage({ params }: Props) {
 
   if (!essay) notFound()
 
-  const [annotationsResult, errorMarkersResult, canAiAnalysis] = await Promise.all([
+  const [annotationsResult, errorMarkersResult, canAiAnalysis, canWhatsapp] = await Promise.all([
     supabase
       .from('annotations')
       .select('*')
@@ -38,6 +38,7 @@ export default async function EssayPage({ params }: Props) {
       .order('created_at', { ascending: true })
       .then((r) => r), // errors handled gracefully below
     canUseFeature(user.id, 'aiAnalysis'),
+    canUseFeature(user.id, 'whatsapp'),
   ])
 
   return (
@@ -46,6 +47,7 @@ export default async function EssayPage({ params }: Props) {
       initialAnnotations={annotationsResult.data ?? []}
       initialErrorMarkers={(errorMarkersResult.error ? [] : errorMarkersResult.data ?? []) as ErrorMarker[]}
       canAiAnalysis={canAiAnalysis}
+      canWhatsapp={canWhatsapp}
     />
   )
 }
