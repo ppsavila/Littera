@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAnnotationStore } from '@/stores/annotationStore'
 import { useScoringStore } from '@/stores/scoringStore'
 import { useErrorMarkerStore } from '@/stores/errorMarkerStore'
+import { createClient } from '@/lib/supabase/client'
 import { DocumentRenderer } from './DocumentRenderer'
 import { AnnotationToolbar, AnnotationToolbarMobile } from '@/components/annotation/AnnotationToolbar'
 import { ErrorMarkerToolbar } from '@/components/annotation/ErrorMarkerToolbar'
@@ -26,7 +27,7 @@ interface Props {
 type MobileTab = 'document' | 'scoring'
 
 export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMarkers, canAiAnalysis }: Props) {
-  const { setAnnotations, undo, selectAnnotation, setTool } = useAnnotationStore()
+  const { setAnnotations, undoAndGetRemovedIds, selectAnnotation, setTool } = useAnnotationStore()
   const { initFromEssay } = useScoringStore()
   const { setMarkers, isErrorMode, setIsErrorMode, setSelectedErrorCode } = useErrorMarkerStore()
   const [showAnnotationSidebar, setShowAnnotationSidebar] = useState(false)
@@ -82,10 +83,20 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
         (e.target as HTMLElement).isContentEditable
       ) return
 
-      // Ctrl+Z / Cmd+Z — undo
+      // Ctrl+Z / Cmd+Z — undo (also deletes undone annotations from DB)
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault()
-        undo()
+        const removedIds = undoAndGetRemovedIds()
+        if (removedIds.length > 0) {
+          const supabase = createClient()
+          supabase
+            .from('annotations')
+            .delete()
+            .in('id', removedIds)
+            .then(({ error }) => {
+              if (error) console.error('[undo] failed to delete annotations from DB:', error.message)
+            })
+        }
         return
       }
 
@@ -113,7 +124,7 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
         }
       }
     },
-    [undo, isErrorMode, setIsErrorMode, setSelectedErrorCode, setTool, selectAnnotation]
+    [undoAndGetRemovedIds, isErrorMode, setIsErrorMode, setSelectedErrorCode, setTool, selectAnnotation]
   )
 
   useEffect(() => {
