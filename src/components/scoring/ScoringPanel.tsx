@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { usePostHog } from 'posthog-js/react'
 import { useScoringStore } from '@/stores/scoringStore'
 import { CompetencyCard } from './CompetencyCard'
@@ -49,6 +49,9 @@ export function ScoringPanel({ essay, fullWidth = false, canAiAnalysis }: Props)
   const supabase = createClient()
   const posthog = usePostHog()
 
+  // Ref to the save function so the debounce effect can always call the latest version
+  const handleSaveRef = useRef<() => Promise<void>>(async () => {})
+
   async function handleSave() {
     if (saveState === 'saving') return
     setSaveState('saving')
@@ -79,6 +82,16 @@ export function ScoringPanel({ essay, fullWidth = false, canAiAnalysis }: Props)
       setTimeout(() => setSaveState('idle'), 3000)
     }
   }
+
+  // Keep the ref in sync so the debounce always calls the latest version
+  handleSaveRef.current = handleSave
+
+  // Auto-save 1.5 s after the last edit when there are unsaved changes
+  useEffect(() => {
+    if (!isDirty) return
+    const timer = setTimeout(() => { handleSaveRef.current() }, 1500)
+    return () => clearTimeout(timer)
+  }, [isDirty, scores, notes, generalComment])
 
   async function handleAnalyze() {
     if (isAnalyzing) return
