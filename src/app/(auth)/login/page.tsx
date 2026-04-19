@@ -53,8 +53,8 @@ export default function LoginPage() {
               className="font-display text-4xl font-semibold leading-snug mb-6"
               style={{ color: 'rgba(255,255,255,0.92)' }}
             >
-              "A redação bem corrigida
-              <br />é a que abre portas."
+              &quot;A redação bem corrigida
+              <br />é a que abre portas.&quot;
             </p>
             <p className="text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
               Ferramenta perfeita para professores corretores do ENEM
