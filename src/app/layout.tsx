@@ -1,23 +1,30 @@
 import type { Metadata } from 'next'
-import { Playfair_Display, DM_Sans } from 'next/font/google'
+import { Montserrat, Open_Sans, Pacifico } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/layout/Providers'
 
-const playfairDisplay = Playfair_Display({
+const montserrat = Montserrat({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-display',
   weight: ['400', '500', '600', '700', '800', '900'],
 })
 
-const dmSans = DM_Sans({
+const openSans = Open_Sans({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-body',
 })
 
+const pacifico = Pacifico({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-brand',
+  weight: ['400'],
+})
+
 export const metadata: Metadata = {
-  title: 'Littera — Correção de Redações do ENEM',
+  title: 'Litterando — Correção de Redações do ENEM',
   description: 'Plataforma inteligente para correção de redações do ENEM com análise por IA',
 }
 
@@ -29,10 +36,10 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`h-full ${playfairDisplay.variable} ${dmSans.variable}`}
+      className={`h-full ${montserrat.variable} ${openSans.variable} ${pacifico.variable}`}
     >
       <body
-        className={`${dmSans.className} h-full`}
+        className={`${openSans.className} h-full`}
         style={{ background: 'var(--littera-parchment)', color: 'var(--littera-ink)' }}
       >
         <Providers>{children}</Providers>

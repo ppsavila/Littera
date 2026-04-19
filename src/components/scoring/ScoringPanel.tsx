@@ -1,10 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { usePostHog } from 'posthog-js/react'
 import { useScoringStore } from '@/stores/scoringStore'
 import { CompetencyCard } from './CompetencyCard'
 import { ScoreGauge } from './ScoreGauge'
 import { AIAnalysisCard } from './AIAnalysisCard'
+import { UpgradeModal } from '@/components/subscription/UpgradeModal'
+import { FeatureLockBadge } from '@/components/subscription/FeatureLockBadge'
 import { COMPETENCIES } from '@/types/essay'
 import { Sparkles, BarChart2, Loader2, Save, Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -16,9 +19,10 @@ interface Props {
   essay: Essay
   /** When true, fills available width instead of the fixed 320 px desktop width */
   fullWidth?: boolean
+  canAiAnalysis?: boolean
 }
 
-export function ScoringPanel({ essay, fullWidth = false }: Props) {
+export function ScoringPanel({ essay, fullWidth = false, canAiAnalysis }: Props) {
   const {
     scores,
     notes,
@@ -40,7 +44,13 @@ export function ScoringPanel({ essay, fullWidth = false }: Props) {
   const [activeTab, setActiveTab] = useState<'scores' | 'ai'>('scores')
   const [analyzeError, setAnalyzeError] = useState('')
   const [saveState, setSaveState] = useState<SaveState>('idle')
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [upgradeReason, setUpgradeReason] = useState<'ai_analysis' | 'daily_limit'>('ai_analysis')
   const supabase = createClient()
+  const posthog = usePostHog()
+
+  // Ref to the save function so the debounce effect can always call the latest version
+  const handleSaveRef = useRef<() => Promise<void>>(async () => {})
 
   async function handleSave() {
     if (saveState === 'saving') return
@@ -73,6 +83,16 @@ export function ScoringPanel({ essay, fullWidth = false }: Props) {
     }
   }
 
+  // Keep the ref in sync so the debounce always calls the latest version
+  handleSaveRef.current = handleSave
+
+  // Auto-save 1.5 s after the last edit when there are unsaved changes
+  useEffect(() => {
+    if (!isDirty) return
+    const timer = setTimeout(() => { handleSaveRef.current() }, 1500)
+    return () => clearTimeout(timer)
+  }, [isDirty, scores, notes, generalComment])
+
   async function handleAnalyze() {
     if (isAnalyzing) return
     setIsAnalyzing(true)
@@ -84,6 +104,16 @@ export function ScoringPanel({ essay, fullWidth = false }: Props) {
       const response = await fetch(`/api/essays/${essay.id}/analyze`, { method: 'POST' })
 
       if (!response.ok) {
+        if (response.status === 403) {
+          setUpgradeReason('ai_analysis')
+          setShowUpgradeModal(true)
+          return
+        }
+        if (response.status === 429) {
+          setUpgradeReason('daily_limit')
+          setShowUpgradeModal(true)
+          return
+        }
         const body = await response.text()
         let msg = `Erro ${response.status}`
         try { msg = JSON.parse(body).error ?? msg } catch {}
@@ -114,6 +144,9 @@ export function ScoringPanel({ essay, fullWidth = false }: Props) {
               appendStreamingText(event.text)
             } else if (event.type === 'done') {
               setAIAnalysis(event.analysis)
+              posthog?.capture('essay_analyzed', {
+                competencies_count: Object.keys(event.analysis.competencies ?? {}).length,
+              })
             } else if (event.type === 'error') {
               throw new Error(event.message)
             }
@@ -205,10 +238,19 @@ export function ScoringPanel({ essay, fullWidth = false }: Props) {
               {key === 'ai' && isAnalyzing && (
                 <Loader2 className="w-3 h-3 animate-spin" />
               )}
+              {key === 'ai' && canAiAnalysis === false && (
+                <FeatureLockBadge tier="plus" onClick={() => { setUpgradeReason('ai_analysis'); setShowUpgradeModal(true) }} />
+              )}
             </button>
           )
         })}
       </div>
+
+      <UpgradeModal
+        open={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        reason={upgradeReason}
+      />
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
@@ -260,7 +302,7 @@ export function ScoringPanel({ essay, fullWidth = false }: Props) {
               analysis={aiAnalysis}
               streamingText={streamingText}
               isAnalyzing={isAnalyzing}
-              onAnalyze={handleAnalyze}
+              onAnalyze={canAiAnalysis === false ? () => { setUpgradeReason('ai_analysis'); setShowUpgradeModal(true) } : handleAnalyze}
             />
           </>
         )}

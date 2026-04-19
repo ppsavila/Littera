@@ -1,26 +1,34 @@
 'use client'
 
+import posthog from 'posthog-js'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, usePathname } from 'next/navigation'
+import Link from 'next/link'
 import { LogOut } from 'lucide-react'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
+import { PlanBadge } from '@/components/subscription/PlanBadge'
+import { UsageIndicator } from '@/components/subscription/UsageIndicator'
+import type { UsageInfo } from '@/lib/subscriptions/access'
 
 interface HeaderProps {
   user: SupabaseUser
+  usageInfo?: UsageInfo
 }
 
 const PAGE_TITLES: Record<string, string> = {
   '/essays':   'Redações',
   '/students': 'Alunos',
   '/dashboard': 'Painel',
+  '/profile':  'Meu Perfil',
 }
 
-export function Header({ user }: HeaderProps) {
+export function Header({ user, usageInfo }: HeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
 
   async function handleSignOut() {
+    posthog.reset()
     await supabase.auth.signOut()
     router.push('/login')
   }
@@ -30,20 +38,20 @@ export function Header({ user }: HeaderProps) {
   // Find best matching page title
   const pageTitle = Object.entries(PAGE_TITLES).find(([key]) =>
     pathname.startsWith(key)
-  )?.[1] ?? 'Littera'
+  )?.[1] ?? 'Litterando'
 
   return (
     <header
-      className="flex items-center justify-between gap-4 px-5 py-3"
+      className="flex items-center justify-between gap-4 px-6 py-4"
       style={{
         background: 'var(--littera-paper)',
         borderBottom: '1px solid var(--littera-dust)',
-        minHeight: 56,
+        minHeight: 60,
       }}
     >
       {/* Page title — visible on mobile too */}
       <h2
-        className="font-display text-base font-semibold"
+        className="font-display text-lg font-semibold"
         style={{ color: 'var(--littera-ink)' }}
       >
         {pageTitle}
@@ -51,27 +59,51 @@ export function Header({ user }: HeaderProps) {
 
       {/* User section */}
       <div className="flex items-center gap-2">
-        {/* Avatar */}
-        <div
-          className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-          style={{ background: 'var(--littera-forest)' }}
-        >
-          {initials}
-        </div>
+        {/* Usage indicator (compact) */}
+        {usageInfo && (
+          <UsageIndicator
+            plan={usageInfo.plan}
+            used={usageInfo.used}
+            limit={usageInfo.limit}
+            subscriptionsEnabled={usageInfo.subscriptionsEnabled}
+            compact
+          />
+        )}
 
-        <span
-          className="text-sm hidden sm:block truncate max-w-[180px]"
-          style={{ color: 'var(--littera-slate)' }}
+        {/* Plan badge */}
+        {usageInfo && (
+          <PlanBadge
+            plan={usageInfo.plan}
+            subscriptionsEnabled={usageInfo.subscriptionsEnabled}
+          />
+        )}
+
+        {/* Avatar + email — links to profile */}
+        <Link
+          href="/profile"
+          className="flex items-center gap-2 rounded-lg px-1 py-0.5 transition-colors hover:bg-[var(--littera-mist)]"
         >
-          {user.email}
-        </span>
+          <div
+            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+            style={{ background: 'var(--littera-forest)' }}
+          >
+            {initials}
+          </div>
+
+          <span
+            className="text-sm hidden sm:block truncate max-w-[180px]"
+            style={{ color: 'var(--littera-slate-dark)' }}
+          >
+            {user.email}
+          </span>
+        </Link>
 
         {/* Sign out */}
         <button
           onClick={handleSignOut}
           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all hover:bg-opacity-80"
           style={{
-            color: 'var(--littera-slate)',
+            color: 'var(--littera-slate-dark)',
             background: 'var(--littera-mist)',
             border: '1px solid var(--littera-dust)',
           }}

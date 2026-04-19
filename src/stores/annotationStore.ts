@@ -26,9 +26,15 @@ interface AnnotationState {
   addAnnotation: (annotation: Annotation) => void
   removeAnnotation: (id: string, page: number) => void
   updateAnnotationComment: (id: string, comment: string, page: number) => void
+  updateAnnotationColor: (id: string, color: string, page: number) => void
+  replaceAnnotation: (tempId: string, real: Annotation, page: number) => void
   selectAnnotation: (id: string | null) => void
 
-  undo: () => void
+  /**
+   * Undoes the last draw operation and returns the IDs of annotations that
+   * were removed so callers can delete them from the database.
+   */
+  undoAndGetRemovedIds: () => string[]
 
   clearAll: () => void
 }
@@ -101,20 +107,14 @@ export const useAnnotationStore = create<AnnotationState>((set, get) => ({
   removeAnnotation: (id, page) =>
     set((state) => {
       const current = state.annotations[page] ?? []
-      const newAnnotations = {
-        ...state.annotations,
-        [page]: current.filter((a) => a.id !== id),
-      }
-      // Snapshot current state before the change
-      const snapshot = cloneAnnotations(state.annotations)
-      const newHistory = [
-        ...state.history.slice(0, state.historyIndex + 1),
-        snapshot,
-      ].slice(-MAX_HISTORY)
+      // Deletion is final — don't push to undo history so the caller
+      // (AnnotationCanvas) can safely delete from DB without risk of
+      // a subsequent undo trying to restore an already-deleted record.
       return {
-        annotations: newAnnotations,
-        history: newHistory,
-        historyIndex: newHistory.length - 1,
+        annotations: {
+          ...state.annotations,
+          [page]: current.filter((a) => a.id !== id),
+        },
         selectedId: state.selectedId === id ? null : state.selectedId,
       }
     }),
@@ -130,18 +130,68 @@ export const useAnnotationStore = create<AnnotationState>((set, get) => ({
       }
     }),
 
-  selectAnnotation: (selectedId) => set({ selectedId }),
-
-  undo: () =>
+  updateAnnotationColor: (id, color, page) =>
     set((state) => {
-      if (state.historyIndex < 0) return {}
-      const snapshot = state.history[state.historyIndex]
+      const current = state.annotations[page] ?? []
       return {
-        annotations: cloneAnnotations(snapshot),
-        historyIndex: state.historyIndex - 1,
-        selectedId: null,
+        annotations: {
+          ...state.annotations,
+          [page]: current.map((a) =>
+            a.id === id
+              ? {
+                  ...a,
+                  color,
+                  shape_data: a.type === 'highlight'
+                    ? { ...a.shape_data, fill: color }
+                    : a.shape_data,
+                }
+              : a
+          ),
+        },
       }
     }),
+
+  replaceAnnotation: (tempId, real, page) =>
+    set((state) => {
+      const current = state.annotations[page] ?? []
+      return {
+        annotations: {
+          ...state.annotations,
+          [page]: current.map((a) => (a.id === tempId ? real : a)),
+        },
+      }
+    }),
+
+  selectAnnotation: (selectedId) => set({ selectedId }),
+
+  undoAndGetRemovedIds: () => {
+    const state = get()
+    if (state.historyIndex < 0) return []
+
+    const snapshot = state.history[state.historyIndex]
+
+    // Find annotation IDs present in current state but absent in the snapshot.
+    // These were drawn since the snapshot and should be deleted from the DB.
+    const snapshotIds = new Set<string>()
+    for (const anns of Object.values(snapshot)) {
+      for (const ann of anns) snapshotIds.add(ann.id)
+    }
+
+    const removedIds: string[] = []
+    for (const anns of Object.values(state.annotations)) {
+      for (const ann of anns) {
+        if (!snapshotIds.has(ann.id)) removedIds.push(ann.id)
+      }
+    }
+
+    set({
+      annotations: cloneAnnotations(snapshot),
+      historyIndex: state.historyIndex - 1,
+      selectedId: null,
+    })
+
+    return removedIds
+  },
 
   clearAll: () => set({ annotations: {}, selectedId: null, history: [], historyIndex: -1 }),
 }))

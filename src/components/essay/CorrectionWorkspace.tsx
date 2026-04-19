@@ -4,12 +4,14 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAnnotationStore } from '@/stores/annotationStore'
 import { useScoringStore } from '@/stores/scoringStore'
 import { useErrorMarkerStore } from '@/stores/errorMarkerStore'
+import { createClient } from '@/lib/supabase/client'
 import { DocumentRenderer } from './DocumentRenderer'
 import { AnnotationToolbar, AnnotationToolbarMobile } from '@/components/annotation/AnnotationToolbar'
 import { ErrorMarkerToolbar } from '@/components/annotation/ErrorMarkerToolbar'
 import { ScoringPanel } from '@/components/scoring/ScoringPanel'
 import { AnnotationSidebar } from '@/components/annotation/AnnotationSidebar'
 import { WorkspaceHeader } from './WorkspaceHeader'
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour'
 import { FileText, BarChart2 } from 'lucide-react'
 import type { Essay } from '@/types/essay'
 import type { Annotation } from '@/types/annotation'
@@ -19,15 +21,17 @@ interface Props {
   essay: Essay
   initialAnnotations: Annotation[]
   initialErrorMarkers: ErrorMarker[]
+  canAiAnalysis: boolean
 }
 
 type MobileTab = 'document' | 'scoring'
 
-export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMarkers }: Props) {
-  const { setAnnotations, undo } = useAnnotationStore()
-  const { initFromEssay } = useScoringStore()
-  const { setMarkers } = useErrorMarkerStore()
+export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMarkers, canAiAnalysis }: Props) {
+  const { setAnnotations, undoAndGetRemovedIds, selectAnnotation, setTool } = useAnnotationStore()
+  const { initFromEssay, isDirty } = useScoringStore()
+  const { setMarkers, isErrorMode, setIsErrorMode, setSelectedErrorCode } = useErrorMarkerStore()
   const [showAnnotationSidebar, setShowAnnotationSidebar] = useState(false)
+  const [showScoringPanel, setShowScoringPanel] = useState(false)
   const [mobileTab, setMobileTab] = useState<MobileTab>('document')
 
   // ── Initialise stores from server-loaded data ──────────────────────────────
@@ -68,15 +72,69 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
     })
   }, [essay, initFromEssay])
 
-  // ── Ctrl+Z / Cmd+Z keyboard shortcut for undo ─────────────────────────────
+  // ── Warn before leaving with unsaved score changes ─────────────────────────
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (!isDirty) return
+      e.preventDefault()
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty])
+
+  // ── Keyboard shortcuts ─────────────────────────────────────────────────────
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      // Skip if user is typing in an input or editable area
+      const tag = (e.target as HTMLElement).tagName
+      if (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA' ||
+        (e.target as HTMLElement).isContentEditable
+      ) return
+
+      // Ctrl+Z / Cmd+Z — undo (also deletes undone annotations from DB)
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault()
-        undo()
+        const removedIds = undoAndGetRemovedIds()
+        if (removedIds.length > 0) {
+          const supabase = createClient()
+          supabase
+            .from('annotations')
+            .delete()
+            .in('id', removedIds)
+            .then(({ error }) => {
+              if (error) console.error('[undo] failed to delete annotations from DB:', error.message)
+            })
+        }
+        return
+      }
+
+      // Single-key tool shortcuts (no modifier)
+      if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+        switch (e.key.toLowerCase()) {
+          case 'e':
+            // Toggle error mode
+            if (!isErrorMode) {
+              setIsErrorMode(true)
+              setTool('pan')
+            } else {
+              setIsErrorMode(false)
+              setSelectedErrorCode(null)
+            }
+            break
+          case 'd': setTool('freehand'); if (isErrorMode) { setIsErrorMode(false); setSelectedErrorCode(null) }; break
+          case 't': setTool('textbox'); if (isErrorMode) { setIsErrorMode(false); setSelectedErrorCode(null) }; break
+          case 'a': setTool('arrow');   if (isErrorMode) { setIsErrorMode(false); setSelectedErrorCode(null) }; break
+          case 'v': setTool('pan');     if (isErrorMode) { setIsErrorMode(false); setSelectedErrorCode(null) }; break
+          case 'h': setTool('highlight'); if (isErrorMode) { setIsErrorMode(false); setSelectedErrorCode(null) }; break
+          case 'm': setTool('marker');  if (isErrorMode) { setIsErrorMode(false); setSelectedErrorCode(null) }; break
+          case 'x': setTool('eraser');  if (isErrorMode) { setIsErrorMode(false); setSelectedErrorCode(null) }; break
+          case 'escape': selectAnnotation(null); break
+        }
       }
     },
-    [undo]
+    [undoAndGetRemovedIds, isErrorMode, setIsErrorMode, setSelectedErrorCode, setTool, selectAnnotation]
   )
 
   useEffect(() => {
@@ -87,11 +145,14 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-full">
+      <OnboardingTour />
       {/* Top bar */}
       <WorkspaceHeader
         essay={essay}
         onToggleAnnotations={() => setShowAnnotationSidebar((v) => !v)}
         showAnnotations={showAnnotationSidebar}
+        onToggleScoring={() => setShowScoringPanel((v) => !v)}
+        showScoring={showScoringPanel}
       />
 
       {/* Horizontal error marker bar — visible on all screen sizes */}
@@ -100,7 +161,7 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
       {/* ── Desktop layout ── */}
       <div className="hidden sm:flex flex-1 overflow-hidden">
         {/* Left: vertical annotation toolbar */}
-        <AnnotationToolbar />
+        <AnnotationToolbar canEditText={essay.source_type === 'image' && !!essay.raw_text} />
 
         {/* Center: document */}
         <div
@@ -113,7 +174,7 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
         {/* Right: annotation sidebar + scoring panel */}
         <div className="flex flex-shrink-0">
           {showAnnotationSidebar && <AnnotationSidebar essayId={essay.id} />}
-          <ScoringPanel essay={essay} />
+          {showScoringPanel && <ScoringPanel essay={essay} canAiAnalysis={canAiAnalysis} />}
         </div>
       </div>
 
@@ -157,7 +218,7 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
         {mobileTab === 'document' && (
           <div className="flex flex-col flex-1 overflow-hidden">
             {/* Mini horizontal tool strip */}
-            <AnnotationToolbarMobile />
+            <AnnotationToolbarMobile canEditText={essay.source_type === 'image' && !!essay.raw_text} />
             {/* Document */}
             <div
               className="flex-1 overflow-auto relative"
@@ -179,7 +240,7 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
                 ['--scoring-panel-width' as string]: '100%',
               }}
             >
-              <ScoringPanelMobileWrapper essay={essay} />
+              <ScoringPanelMobileWrapper essay={essay} canAiAnalysis={canAiAnalysis} />
             </div>
           </div>
         )}
@@ -192,13 +253,13 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
  * Thin wrapper that renders ScoringPanel full-width on mobile.
  * The panel itself uses `w-80` which we need to override.
  */
-function ScoringPanelMobileWrapper({ essay }: { essay: Essay }) {
+function ScoringPanelMobileWrapper({ essay, canAiAnalysis }: { essay: Essay; canAiAnalysis: boolean }) {
   return (
     <div
       className="h-full overflow-hidden flex flex-col"
       style={{ width: '100%' }}
     >
-      <ScoringPanel essay={essay} fullWidth />
+      <ScoringPanel essay={essay} fullWidth canAiAnalysis={canAiAnalysis} />
     </div>
   )
 }

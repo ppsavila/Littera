@@ -1,22 +1,22 @@
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { analyzeEssayStream } from '@/lib/ai/analyze-essay'
 import { NextResponse } from 'next/server'
+import { canUseFeature } from '@/lib/subscriptions/access'
+import { logger } from '@/lib/logger'
 
-// Simple in-memory rate limiter: max 5 analyses per user per 10 minutes
-const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
+// Rate limit: max 5 analyses per user per 10 minutes — persisted in Supabase (serverless-safe)
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000 // 10 min
 const RATE_LIMIT_MAX = 5
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
 
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now()
-  const entry = rateLimitMap.get(userId)
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
-    return true
-  }
-  if (entry.count >= RATE_LIMIT_MAX) return false
-  entry.count++
-  return true
+async function checkRateLimit(userId: string): Promise<boolean> {
+  const db = createServiceClient()
+  const { data } = await db.rpc('check_ai_rate_limit', {
+    p_user_id:   userId,
+    p_max:       RATE_LIMIT_MAX,
+    p_window_ms: RATE_LIMIT_WINDOW_MS,
+  })
+  return data === true
 }
 
 export async function POST(
@@ -29,7 +29,19 @@ export async function POST(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  if (!checkRateLimit(user.id)) {
+  // Check plan feature access (respects feature flag)
+  if (!(await canUseFeature(user.id, 'aiAnalysis'))) {
+    return NextResponse.json(
+      {
+        error: 'Análise por IA está disponível nos planos Plus e Premium.',
+        code: 'FEATURE_REQUIRES_PLUS',
+        upgrade: 'plus',
+      },
+      { status: 403 }
+    )
+  }
+
+  if (!(await checkRateLimit(user.id))) {
     return NextResponse.json(
       { error: 'Limite de análises atingido. Tente novamente em 10 minutos.' },
       { status: 429 }
@@ -111,6 +123,7 @@ export async function POST(
           }
         }
       } catch (err) {
+        logger.error('ai.analyze.failed', err, { essayId: id })
         await supabase.from('essays').update({ status: 'pending' }).eq('id', id)
         controller.enqueue(
           encoder.encode(

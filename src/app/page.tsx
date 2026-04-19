@@ -13,7 +13,7 @@ export default async function HomePage() {
       icon: Upload,
       num: '01',
       title: 'Upload em qualquer formato',
-      desc: 'PDF, imagem digitalizada ou texto colado — o Littera processa qualquer tipo de redação sem complicação.',
+      desc: 'PDF, imagem digitalizada ou texto colado — o Litterando processa qualquer tipo de redação sem complicação.',
     },
     {
       icon: Brain,
@@ -69,13 +69,13 @@ export default async function HomePage() {
             className="font-display text-lg font-semibold"
             style={{ color: 'var(--littera-ink)' }}
           >
-            Littera
+            Litterando
           </span>
         </div>
 
         <Link
           href="/login"
-          className="littera-btn littera-btn-outline px-4 py-2 text-sm"
+          className="littera-btn littera-btn-outline px-5 py-2.5 text-sm"
         >
           Entrar
         </Link>
@@ -91,7 +91,7 @@ export default async function HomePage() {
               style={{
                 background: 'var(--littera-forest-light)',
                 color: 'var(--littera-forest)',
-                border: '1px solid rgba(26,77,58,0.20)',
+                border: '1px solid rgba(75,0,130,0.20)',
               }}
             >
               <span
@@ -102,7 +102,7 @@ export default async function HomePage() {
             </div>
 
             <h1
-              className="font-display text-4xl sm:text-5xl font-bold leading-tight mb-5"
+              className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-6"
               style={{ color: 'var(--littera-ink)' }}
             >
               Corrija redações do{' '}
@@ -120,8 +120,8 @@ export default async function HomePage() {
             </h1>
 
             <p
-              className="text-base sm:text-lg leading-relaxed mb-8"
-              style={{ color: 'var(--littera-slate)' }}
+              className="text-lg sm:text-xl leading-relaxed mb-8"
+              style={{ color: 'var(--littera-slate-dark)' }}
             >
               Faça o upload da redação, receba análise automática por competência
               e atribua notas seguindo os critérios oficiais — tudo em uma só plataforma.
@@ -130,14 +130,14 @@ export default async function HomePage() {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/login"
-                className="littera-btn littera-btn-primary px-6 py-3 text-sm"
+                className="littera-btn littera-btn-primary px-8 py-3.5 text-base font-semibold"
               >
                 Começar agora
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <a
                 href="#como-funciona"
-                className="littera-btn littera-btn-outline px-6 py-3 text-sm"
+                className="littera-btn littera-btn-outline px-8 py-3.5 text-base font-semibold"
               >
                 Como funciona
               </a>
@@ -255,7 +255,7 @@ export default async function HomePage() {
             Como funciona
           </p>
           <h2
-            className="font-display text-3xl sm:text-4xl font-semibold"
+            className="font-display text-3xl sm:text-4xl font-bold"
             style={{ color: 'var(--littera-ink)' }}
           >
             Tudo que você precisa em um só lugar
@@ -275,13 +275,13 @@ export default async function HomePage() {
             >
               <div className="flex items-start gap-4">
                 <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                  className="w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0"
                   style={{
                     background: 'var(--littera-forest-light)',
-                    border: '1px solid rgba(26,77,58,0.15)',
+                    border: '1px solid rgba(75,0,130,0.15)',
                   }}
                 >
-                  <Icon className="w-4.5 h-4.5" style={{ color: 'var(--littera-forest)', width: 18, height: 18 }} />
+                  <Icon className="w-5 h-5" style={{ color: 'var(--littera-forest)', width: 20, height: 20 }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1.5">
@@ -292,13 +292,13 @@ export default async function HomePage() {
                       {num}
                     </span>
                     <h3
-                      className="text-sm font-semibold"
+                      className="text-base font-semibold"
                       style={{ color: 'var(--littera-ink)' }}
                     >
                       {title}
                     </h3>
                   </div>
-                  <p className="text-sm leading-relaxed" style={{ color: 'var(--littera-slate)' }}>
+                  <p className="text-sm sm:text-base leading-relaxed" style={{ color: 'var(--littera-slate-dark)' }}>
                     {desc}
                   </p>
                 </div>
@@ -317,12 +317,12 @@ export default async function HomePage() {
       >
         <div className="max-w-3xl mx-auto px-6 sm:px-10 py-16 text-center">
           <h2
-            className="font-display text-3xl sm:text-4xl font-semibold mb-4"
+            className="font-display text-3xl sm:text-4xl font-bold mb-5"
             style={{ color: '#fff' }}
           >
             Pronto para começar?
           </h2>
-          <p className="text-base mb-8" style={{ color: 'rgba(255,255,255,0.70)' }}>
+          <p className="text-lg mb-8" style={{ color: 'rgba(255,255,255,0.80)' }}>
             Acesse gratuitamente e corrija a primeira redação hoje.
           </p>
           <Link
@@ -338,7 +338,7 @@ export default async function HomePage() {
             Criar conta gratuita
             <ArrowRight className="w-4 h-4 ml-1" />
           </Link>
-          <p className="text-xs mt-6" style={{ color: 'rgba(255,255,255,0.45)' }}>
+          <p className="text-xs mt-6" style={{ color: 'rgba(255,255,255,0.60)' }}>
             Para professores corretores do ENEM
           </p>
         </div>

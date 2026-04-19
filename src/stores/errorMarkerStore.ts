@@ -9,6 +9,7 @@ interface ErrorMarkerState {
   setMarkers: (markers: ErrorMarker[]) => void
   addMarker: (marker: ErrorMarker) => void
   removeMarker: (id: string) => void
+  updateMarker: (id: string, updates: Partial<ErrorMarker>) => void
   setSelectedErrorCode: (code: string | null) => void
   setIsErrorMode: (v: boolean) => void
 
@@ -27,6 +28,11 @@ export const useErrorMarkerStore = create<ErrorMarkerState>((set, get) => ({
 
   removeMarker: (id) =>
     set((state) => ({ markers: state.markers.filter((m) => m.id !== id) })),
+
+  updateMarker: (id, updates) =>
+    set((state) => ({
+      markers: state.markers.map((m) => (m.id === id ? { ...m, ...updates } : m)),
+    })),
 
   setSelectedErrorCode: (selectedErrorCode) => set({ selectedErrorCode }),
 

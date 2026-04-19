@@ -27,7 +27,8 @@ export async function proxy(request: NextRequest) {
 
   const isAuthPage = request.nextUrl.pathname.startsWith('/login')
   const isApiRoute = request.nextUrl.pathname.startsWith('/api')
-  const isPublicRoute = isAuthPage || request.nextUrl.pathname === '/'
+  const isSharePage = request.nextUrl.pathname.startsWith('/c/')
+  const isPublicRoute = isAuthPage || isSharePage || request.nextUrl.pathname === '/'
 
   if (!user && !isPublicRoute && !isApiRoute) {
     return NextResponse.redirect(new URL('/login', request.url))

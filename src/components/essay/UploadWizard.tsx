@@ -3,9 +3,35 @@
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useRouter } from 'next/navigation'
-import { Upload, FileText, ImageIcon, Type, ChevronRight, Loader2 } from 'lucide-react'
+import { Upload, FileText, ImageIcon, Type, ChevronRight, Loader2, Sparkles, AlertTriangle, SkipForward } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
+import { UpgradeModal } from '@/components/subscription/UpgradeModal'
+import { usePostHog } from 'posthog-js/react'
+
+type ExtractionState = 'idle' | 'extracting' | 'done' | 'error'
+
+/** Resizes an image client-side and returns base64 JPEG — keeps payload under Claude's 5MB limit */
+async function resizeImageToBase64(file: File, maxDimension = 2000): Promise<{ base64: string; mimeType: 'image/jpeg' }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      const scale = Math.min(1, maxDimension / Math.max(img.width, img.height))
+      const canvas = document.createElement('canvas')
+      canvas.width  = Math.round(img.width  * scale)
+      canvas.height = Math.round(img.height * scale)
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return reject(new Error('Canvas context unavailable'))
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
+      resolve({ base64: dataUrl.split(',')[1], mimeType: 'image/jpeg' })
+    }
+    img.onerror = reject
+    img.src = url
+  })
+}
 
 type Step = 'upload' | 'metadata'
 type SourceType = 'pdf' | 'image' | 'text'
@@ -28,6 +54,7 @@ interface FileState {
 export function UploadWizard() {
   const router = useRouter()
   const supabase = createClient()
+  const posthog = usePostHog()
 
   const [step, setStep] = useState<Step>('upload')
   const [fileState, setFileState] = useState<FileState>({
@@ -45,6 +72,28 @@ export function UploadWizard() {
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError]           = useState('')
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+
+  const [extractionState, setExtractionState] = useState<ExtractionState>('idle')
+  const [extractedText, setExtractedText]     = useState('')
+
+  async function extractText(file: File) {
+    setExtractionState('extracting')
+    try {
+      const { base64, mimeType } = await resizeImageToBase64(file)
+      const res = await fetch('/api/extract-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, mimeType }),
+      })
+      if (!res.ok) throw new Error('extraction failed')
+      const { text } = await res.json()
+      setExtractedText(text)
+      setExtractionState('done')
+    } catch {
+      setExtractionState('error')
+    }
+  }
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
@@ -54,8 +103,13 @@ export function UploadWizard() {
     const preview = sourceType === 'image' ? URL.createObjectURL(file) : null
     setFileState({ file, sourceType, textContent: '', preview })
     setTitle(file.name.replace(/\.[^.]+$/, ''))
-    setStep('metadata')
-  }, [])
+
+    if (sourceType === 'image') {
+      extractText(file)
+    } else {
+      setStep('metadata')
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -123,12 +177,18 @@ export function UploadWizard() {
 
         if (uploadError) throw uploadError
         storagePath = path
+
+        // Include AI-extracted text so the essay can be analyzed
+        if (extractedText.trim()) {
+          rawText = extractedText.trim()
+        }
       }
 
-      const { data: essay, error: essayError } = await supabase
-        .from('essays')
-        .insert({
-          teacher_id:   user.id,
+      // Create essay via API (enforces daily limit)
+      const essayRes = await fetch('/api/essays', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           student_id:   studentId,
           title:        title || 'Redação sem título',
           source_type:  fileState.sourceType,
@@ -136,13 +196,24 @@ export function UploadWizard() {
           raw_text:     rawText,
           theme:        theme.trim() || null,
           status:       'pending',
-        })
-        .select('id')
-        .single()
+        }),
+      })
 
-      if (essayError) throw essayError
+      if (essayRes.status === 429) {
+        setShowUpgradeModal(true)
+        setSubmitting(false)
+        return
+      }
 
+      if (!essayRes.ok) {
+        const errData = await essayRes.json().catch(() => ({}))
+        throw new Error(errData.error ?? 'Erro ao criar redação')
+      }
+
+      const essay = await essayRes.json()
+      posthog?.capture('essay_created', { source_type: fileState.sourceType })
       router.push(`/essays/${essay.id}`)
+      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar redação')
       setSubmitting(false)
@@ -151,6 +222,12 @@ export function UploadWizard() {
 
   if (step === 'metadata') {
     return (
+      <>
+        <UpgradeModal
+          open={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+          reason="daily_limit"
+        />
       <form onSubmit={handleSubmit} className="space-y-6">
         <div
           className="rounded-xl p-5"
@@ -274,6 +351,138 @@ export function UploadWizard() {
           </button>
         </div>
       </form>
+      </>
+    )
+  }
+
+  // After dropping an image, show extraction progress / review before going to metadata
+  if (inputMode === 'file' && fileState.sourceType === 'image' && extractionState !== 'idle') {
+    return (
+      <div className="space-y-4">
+        {/* Image thumbnail */}
+        {fileState.preview && (
+          <div
+            className="rounded-xl overflow-hidden"
+            style={{ border: '1px solid var(--littera-dust)', maxHeight: '220px' }}
+          >
+            <img
+              src={fileState.preview}
+              alt="Redação"
+              className="w-full object-contain"
+              style={{ maxHeight: '220px', background: 'var(--littera-mist)' }}
+            />
+          </div>
+        )}
+
+        {extractionState === 'extracting' && (
+          <div
+            className="rounded-xl p-6 flex flex-col items-center gap-3"
+            style={{
+              background: 'var(--littera-paper)',
+              border: '1px solid var(--littera-dust)',
+            }}
+          >
+            <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--littera-forest)' }} />
+            <p className="text-sm font-medium" style={{ color: 'var(--littera-ink)' }}>
+              Extraindo texto com IA...
+            </p>
+            <p className="text-xs text-center" style={{ color: 'var(--littera-slate)' }}>
+              Lendo a redação e transcrevendo o conteúdo
+            </p>
+          </div>
+        )}
+
+        {extractionState === 'done' && (
+          <div className="space-y-3">
+            <div
+              className="rounded-xl p-4"
+              style={{
+                background: 'var(--littera-paper)',
+                border: '1px solid var(--littera-dust)',
+              }}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="w-4 h-4" style={{ color: 'var(--littera-forest)' }} />
+                <span className="text-sm font-medium" style={{ color: 'var(--littera-ink)' }}>
+                  Texto extraído pela IA
+                </span>
+              </div>
+              <p className="text-xs mb-3" style={{ color: 'var(--littera-slate)' }}>
+                Verifique se o texto foi extraído corretamente. Corrija apenas erros de leitura — erros de ortografia do aluno devem ser mantidos.
+              </p>
+              <div className="flex justify-center">
+                <textarea
+                  value={extractedText}
+                  onChange={(e) => setExtractedText(e.target.value)}
+                  rows={14}
+                  className="resize-none w-full font-serif leading-relaxed text-gray-900 focus:outline-none"
+                  style={{
+                    maxWidth: 540,
+                    padding: '2rem',
+                    fontSize: '0.9375rem',
+                    lineHeight: 1.8,
+                    background: '#fff',
+                    border: '1px solid var(--littera-dust)',
+                    borderRadius: 8,
+                    boxShadow: 'var(--littera-shadow-sm)',
+                  }}
+                />
+              </div>
+              <p className="text-xs mt-1 text-center" style={{ color: 'var(--littera-slate)' }}>
+                {extractedText.length} caracteres
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setStep('metadata')}
+                disabled={!extractedText.trim()}
+                className="littera-btn littera-btn-primary px-5 py-2 text-sm"
+              >
+                Continuar
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => { setExtractedText(''); setStep('metadata') }}
+                className="text-sm"
+                style={{ color: 'var(--littera-slate)' }}
+              >
+                <SkipForward className="w-3 h-3 inline mr-1" />
+                Usar sem texto
+              </button>
+            </div>
+          </div>
+        )}
+
+        {extractionState === 'error' && (
+          <div className="space-y-3">
+            <div
+              className="rounded-xl p-4 flex items-start gap-3"
+              style={{
+                background: 'var(--littera-rose-light)',
+                border: '1px solid rgba(190,18,60,0.20)',
+              }}
+            >
+              <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" style={{ color: 'var(--littera-rose)' }} />
+              <div>
+                <p className="text-sm font-medium" style={{ color: 'var(--littera-rose)' }}>
+                  Não foi possível extrair o texto automaticamente
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--littera-rose)' }}>
+                  A redação será salva normalmente, mas a análise de IA não estará disponível.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setStep('metadata')}
+              className="littera-btn littera-btn-outline px-5 py-2 text-sm"
+            >
+              Continuar assim mesmo
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </div>
     )
   }
 

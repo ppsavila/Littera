@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Stage, Layer, Line, Rect, Arrow, Text, Circle } from 'react-konva'
 import { useAnnotationStore } from '@/stores/annotationStore'
-import { useErrorMarkerStore } from '@/stores/errorMarkerStore'
 import { createClient } from '@/lib/supabase/client'
-import { CommentPopover } from './CommentPopover'
+import { ShapeControlsPanel } from './ShapeControlsPanel'
+import { usePostHog } from 'posthog-js/react'
 import type Konva from 'konva'
 import type { Annotation, ShapeData } from '@/types/annotation'
 
@@ -42,6 +42,7 @@ export function AnnotationCanvas({
     selectedId,
     addAnnotation,
     removeAnnotation,
+    replaceAnnotation,
     selectAnnotation,
   } = useAnnotationStore()
 
@@ -52,6 +53,8 @@ export function AnnotationCanvas({
     currentPoints: [],
   })
 
+  const pointsRef = useRef<number[]>([])
+
   const [popover, setPopover] = useState<{
     visible: boolean
     annotationId: string
@@ -59,8 +62,14 @@ export function AnnotationCanvas({
     y: number
   } | null>(null)
 
-  const { isErrorMode } = useErrorMarkerStore()
+  const [editingText, setEditingText] = useState<{
+    x: number
+    y: number
+    value: string
+  } | null>(null)
+
   const supabase = createClient()
+  const posthog = usePostHog()
   const pageAnnotations = annotations[pageNumber] ?? []
 
   // Normalize coords (absolute → 0-1 relative to natural page size)
@@ -91,6 +100,23 @@ export function AnnotationCanvas({
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
+    const tempId = crypto.randomUUID()
+    const optimistic: Annotation = {
+      id: tempId,
+      essay_id: essayId,
+      teacher_id: user.id,
+      page_number: pageNumber,
+      type,
+      shape_data: { ...shapeData, normalized: true },
+      comment: null,
+      competency: activeCompetency,
+      color: activeColor,
+      created_at: new Date().toISOString(),
+    }
+    // Immediate visual feedback
+    addAnnotation(optimistic)
+
+    // Persist in background
     const { data, error } = await supabase
       .from('annotations')
       .insert({
@@ -106,7 +132,11 @@ export function AnnotationCanvas({
       .single()
 
     if (!error && data) {
-      addAnnotation(data as Annotation)
+      replaceAnnotation(tempId, data as Annotation, pageNumber)
+      posthog?.capture('annotation_used', { tool_type: type })
+    } else {
+      // Roll back on failure
+      removeAnnotation(tempId, pageNumber)
     }
   }
 
@@ -126,6 +156,7 @@ export function AnnotationCanvas({
     if (activeTool === 'pan') return
     if (e.target !== e.target.getStage() && activeTool !== 'eraser') return
 
+    pointsRef.current = []
     const { x, y } = getRelativePos(e)
     selectAnnotation(null)
     setPopover(null)
@@ -138,10 +169,11 @@ export function AnnotationCanvas({
     const { x, y } = getRelativePos(e)
 
     if (activeTool === 'freehand') {
-      setDrawing((d) => ({
-        ...d,
-        currentPoints: [...d.currentPoints, x, y],
-      }))
+      pointsRef.current.push(x, y)
+      // Update React state only every 4 points for preview rendering
+      if (pointsRef.current.length % 8 === 0) {
+        setDrawing((d) => ({ ...d, currentPoints: [...pointsRef.current] }))
+      }
     } else {
       setDrawing((d) => ({ ...d, currentPoints: [d.startX, d.startY, x, y] }))
     }
@@ -177,13 +209,15 @@ export function AnnotationCanvas({
       }
 
       case 'freehand': {
-        if (currentPoints.length < 4) return
+        const pts = pointsRef.current.length >= 4 ? pointsRef.current : currentPoints
+        if (pts.length < 4) break
         await saveAnnotation({
-          points: normalizePoints(currentPoints),
+          points: normalizePoints(pts),
           stroke: activeColor,
           strokeWidth,
           opacity: 1,
         }, 'freehand')
+        pointsRef.current = []
         break
       }
 
@@ -210,17 +244,24 @@ export function AnnotationCanvas({
     }
   }
 
-  async function handleTextboxClick(e: Konva.KonvaEventObject<MouseEvent>) {
+  function handleTextboxClick(e: Konva.KonvaEventObject<MouseEvent>) {
     if (activeTool !== 'textbox') return
     const { x, y } = getRelativePos(e)
-    const norm = normalize(x, y)
-    const text = window.prompt('Digite o texto da anotação:')
-    if (!text) return
+    setEditingText({ x, y, value: '' })
+  }
 
+  async function commitText() {
+    if (!editingText || !editingText.value.trim()) {
+      setEditingText(null)
+      return
+    }
+    const { x, y, value } = editingText
+    setEditingText(null)
+    const norm = normalize(x, y)
     await saveAnnotation({
       x: norm.x,
       y: norm.y,
-      text,
+      text: value,
       fontSize: 14,
       fill: activeColor,
       opacity: 1,
@@ -239,12 +280,16 @@ export function AnnotationCanvas({
     setPopover({ visible: true, annotationId: ann.id, x: pos.x, y: pos.y })
   }
 
-  const cursorStyle =
-    activeTool === 'pan'
-      ? 'default'
-      : activeTool === 'eraser'
-      ? 'cell'
-      : 'crosshair'
+  const CURSOR_MAP: Record<string, string> = {
+    pan: 'default',
+    highlight: 'crosshair',
+    freehand: 'crosshair',
+    arrow: 'crosshair',
+    textbox: 'text',
+    marker: 'cell',
+    eraser: 'not-allowed',
+  }
+  const cursorStyle = CURSOR_MAP[activeTool] ?? 'crosshair'
 
   // Render preview shape while drawing
   function renderPreview() {
@@ -388,7 +433,7 @@ export function AnnotationCanvas({
   return (
     <div
       className="absolute inset-0"
-      style={{ cursor: cursorStyle, pointerEvents: isErrorMode ? 'none' : 'auto' }}
+      style={{ cursor: cursorStyle }}
     >
       <Stage
         width={width}
@@ -404,15 +449,52 @@ export function AnnotationCanvas({
         </Layer>
       </Stage>
 
+      {editingText && (
+        <textarea
+          autoFocus
+          rows={1}
+          style={{
+            position: 'absolute',
+            left: editingText.x,
+            top: editingText.y,
+            minWidth: 120,
+            maxWidth: 300,
+            background: 'rgba(255,255,255,0.95)',
+            border: '1.5px solid #60A5FA',
+            borderRadius: 4,
+            padding: '2px 6px',
+            fontSize: 14,
+            fontFamily: 'inherit',
+            lineHeight: '1.5',
+            outline: 'none',
+            resize: 'none',
+            overflow: 'hidden',
+            zIndex: 100,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          }}
+          value={editingText.value}
+          onChange={(e) => {
+            const el = e.target as HTMLTextAreaElement
+            el.style.height = 'auto'
+            el.style.height = el.scrollHeight + 'px'
+            setEditingText(prev => prev ? { ...prev, value: e.target.value } : null)
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commitText() }
+            if (e.key === 'Escape') setEditingText(null)
+          }}
+          onBlur={commitText}
+        />
+      )}
+
       {popover?.visible && (
-        <CommentPopover
+        <ShapeControlsPanel
           annotationId={popover.annotationId}
           pageNumber={pageNumber}
           x={popover.x}
           y={popover.y}
           onClose={() => setPopover(null)}
           onDelete={() => deleteAnnotation(popover.annotationId)}
-          essayId={essayId}
         />
       )}
     </div>

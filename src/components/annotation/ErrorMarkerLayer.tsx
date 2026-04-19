@@ -12,6 +12,7 @@ interface Props {
   pageNumber: number
   width: number
   height: number
+  readOnly?: boolean
 }
 
 function findCompetency(errorCode: string): number {
@@ -25,10 +26,108 @@ function getColor(competency: number): string {
   return COMPETENCIES.find((c) => c.number === competency)?.color ?? '#ef4444'
 }
 
-export function ErrorMarkerLayer({ essayId, pageNumber, width, height }: Props) {
-  const { markers, addMarker, removeMarker, selectedErrorCode, isErrorMode } =
+// ─── Note Popover (shown after placing a marker) ────────────────────────────────
+interface NotePopoverProps {
+  x: number
+  y: number
+  containerWidth: number
+  onConfirm: (note: string) => void
+  onDismiss: () => void
+}
+
+function NotePopover({ x, y, containerWidth, onConfirm, onDismiss }: NotePopoverProps) {
+  const [note, setNote] = useState('')
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
+
+  // Clamp so popover doesn't overflow the container
+  const left = Math.min(x, containerWidth - 230)
+
+  return (
+    <div
+      data-marker-badge="true"
+      style={{
+        position: 'absolute',
+        left: Math.max(4, left),
+        top: Math.max(4, y + 24),
+        width: 224,
+        background: '#fff',
+        border: '1px solid #e5e7eb',
+        borderRadius: 12,
+        boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+        padding: 12,
+        zIndex: 60,
+        pointerEvents: 'auto',
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <p style={{ fontSize: 11, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+        Adicionar comentário <span style={{ fontWeight: 400, color: '#9ca3af' }}>(opcional)</span>
+      </p>
+      <textarea
+        ref={inputRef}
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        placeholder="Ex: reescreva usando norma culta..."
+        rows={2}
+        style={{
+          width: '100%',
+          resize: 'none',
+          border: '1px solid #d1d5db',
+          borderRadius: 8,
+          padding: '6px 8px',
+          fontSize: 11,
+          fontFamily: 'inherit',
+          outline: 'none',
+          marginBottom: 8,
+          color: '#374151',
+          lineHeight: 1.5,
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onConfirm(note) }
+          if (e.key === 'Escape') onDismiss()
+        }}
+      />
+      <div style={{ display: 'flex', gap: 6 }}>
+        <button
+          onClick={() => onConfirm(note)}
+          style={{
+            flex: 1, padding: '5px 0', fontSize: 11, fontWeight: 600,
+            background: 'var(--littera-forest)', color: '#fff',
+            border: 'none', borderRadius: 8, cursor: 'pointer',
+          }}
+        >
+          Confirmar
+        </button>
+        <button
+          onClick={onDismiss}
+          style={{
+            flex: 1, padding: '5px 0', fontSize: 11,
+            background: '#f3f4f6', color: '#6b7280',
+            border: 'none', borderRadius: 8, cursor: 'pointer',
+          }}
+        >
+          Pular
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Component ──────────────────────────────────────────────────────────────────
+
+export function ErrorMarkerLayer({ essayId, pageNumber, width, height, readOnly }: Props) {
+  const { markers, addMarker, removeMarker, updateMarker, selectedErrorCode, isErrorMode } =
     useErrorMarkerStore()
-  const [tooltip, setTooltip] = useState<string | null>(null)
+  const [hoveredMarkerId, setHoveredMarkerId] = useState<string | null>(null)
+  const [pendingNote, setPendingNote] = useState<{
+    markerId: string
+    badgeLeft: number
+    badgeTop: number
+  } | null>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
 
@@ -39,11 +138,52 @@ export function ErrorMarkerLayer({ essayId, pageNumber, width, height }: Props) 
     if (!isErrorMode) window.getSelection()?.removeAllRanges()
   }, [isErrorMode])
 
-  // Document-level mouseup: captures both text selections and point clicks
+  // Persists a new marker to DB and triggers the optional note popover
+  const saveMarker = useCallback(
+    async (
+      { x, y, x2, y2, selectedText, rects }: {
+        x: number; y: number; x2: number | null; y2: number | null
+        selectedText: string | null; rects: import('@/types/error-marker').MarkerRect[] | null
+      },
+      badgeLeft: number,
+      badgeTop: number,
+    ) => {
+      const competency = findCompetency(selectedErrorCode!)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data, error } = await supabase
+        .from('error_markers')
+        .insert({
+          essay_id: essayId,
+          teacher_id: user.id,
+          page_number: pageNumber,
+          x, y, x2, y2,
+          rects: rects ?? null,
+          selected_text: selectedText,
+          error_code: selectedErrorCode,
+          competency,
+        })
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Erro ao salvar marcador:', error.message)
+        return
+      }
+      if (data) {
+        addMarker(data as ErrorMarker)
+        // Prompt for optional note
+        setPendingNote({ markerId: data.id, badgeLeft, badgeTop })
+      }
+    },
+    [supabase, selectedErrorCode, essayId, pageNumber, addMarker],
+  )
+
+  // Document-level mouseup: captures text selections and point clicks
   const handleDocMouseUp = useCallback(
     async (e: MouseEvent) => {
       if (!isErrorMode || !selectedErrorCode) return
-      // Ignore clicks on marker badges/tooltips
       if ((e.target as HTMLElement).closest('[data-marker-badge]')) return
 
       const overlay = overlayRef.current
@@ -51,7 +191,6 @@ export function ErrorMarkerLayer({ essayId, pageNumber, width, height }: Props) 
 
       const overlayRect = overlay.getBoundingClientRect()
 
-      // Check if the event is within this page's bounds
       const inBounds =
         e.clientX >= overlayRect.left &&
         e.clientX <= overlayRect.right &&
@@ -65,7 +204,6 @@ export function ErrorMarkerLayer({ essayId, pageNumber, width, height }: Props) 
         const range = selection.getRangeAt(0)
         const selRect = range.getBoundingClientRect()
 
-        // Check if selection overlaps this page
         if (
           selRect.right < overlayRect.left ||
           selRect.left > overlayRect.right ||
@@ -75,7 +213,6 @@ export function ErrorMarkerLayer({ essayId, pageNumber, width, height }: Props) 
           return
         }
 
-        // Per-line rects for accurate highlight rendering (avoids full bounding-box)
         const lineRects = Array.from(range.getClientRects())
           .map((r) => ({
             x:  Math.max(0, (r.left  - overlayRect.left) / width),
@@ -85,7 +222,6 @@ export function ErrorMarkerLayer({ essayId, pageNumber, width, height }: Props) 
           }))
           .filter((r) => r.x2 - r.x > 0.001 && r.y2 - r.y > 0.001)
 
-        // Bounding box kept for badge positioning & backward compat
         const x  = Math.max(0, (selRect.left   - overlayRect.left) / width)
         const y  = Math.max(0, (selRect.top    - overlayRect.top)  / height)
         const x2 = Math.min(1, (selRect.right  - overlayRect.left) / width)
@@ -95,16 +231,24 @@ export function ErrorMarkerLayer({ essayId, pageNumber, width, height }: Props) 
         selection.removeAllRanges()
 
         if (selectedText && lineRects.length > 0) {
-          await saveMarker({ x, y, x2, y2, selectedText, rects: lineRects })
+          const lastRect = lineRects[lineRects.length - 1]
+          await saveMarker(
+            { x, y, x2, y2, selectedText, rects: lineRects },
+            lastRect.x2 * width + 2,
+            lastRect.y  * height - 14,
+          )
         }
       } else if (inBounds) {
-        // Point click (no selection)
-        const x = (e.clientX - overlayRect.left) / width
-        const y = (e.clientY - overlayRect.top) / height
-        await saveMarker({ x, y, x2: null, y2: null, selectedText: null, rects: null })
+        const px = (e.clientX - overlayRect.left)
+        const py = (e.clientY - overlayRect.top)
+        await saveMarker(
+          { x: px / width, y: py / height, x2: null, y2: null, selectedText: null, rects: null },
+          px - 14,
+          py - 14,
+        )
       }
     },
-    [isErrorMode, selectedErrorCode, width, height]
+    [isErrorMode, selectedErrorCode, width, height, saveMarker],
   )
 
   useEffect(() => {
@@ -112,47 +256,42 @@ export function ErrorMarkerLayer({ essayId, pageNumber, width, height }: Props) 
     return () => document.removeEventListener('mouseup', handleDocMouseUp)
   }, [handleDocMouseUp])
 
-  async function saveMarker({
-    x, y, x2, y2, selectedText, rects,
-  }: {
-    x: number; y: number; x2: number | null; y2: number | null
-    selectedText: string | null; rects: import('@/types/error-marker').MarkerRect[] | null
-  }) {
-    const competency = findCompetency(selectedErrorCode!)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+  async function handleNoteConfirm(note: string) {
+    if (!pendingNote) return
+    const { markerId } = pendingNote
+    setPendingNote(null)
 
-    const { data, error } = await supabase
+    if (!note.trim()) return
+
+    const { error } = await supabase
       .from('error_markers')
-      .insert({
-        essay_id: essayId,
-        teacher_id: user.id,
-        page_number: pageNumber,
-        x, y, x2, y2,
-        rects: rects ?? null,
-        selected_text: selectedText,
-        error_code: selectedErrorCode,
-        competency,
-      })
-      .select()
-      .single()
+      .update({ note: note.trim() })
+      .eq('id', markerId)
 
-    if (error) {
-      console.error('Erro ao salvar marcador:', error.message)
-      return
+    if (!error) {
+      updateMarker(markerId, { note: note.trim() })
     }
-    if (data) addMarker(data as ErrorMarker)
+  }
+
+  function handleNoteDismiss() {
+    setPendingNote(null)
   }
 
   async function handleDelete(marker: ErrorMarker, e: React.MouseEvent) {
     e.stopPropagation()
-    await supabase.from('error_markers').delete().eq('id', marker.id)
+    // Optimistic: remove immediately for fast UI feedback
     removeMarker(marker.id)
-    setTooltip(null)
+    setHoveredMarkerId(null)
+
+    const { error } = await supabase.from('error_markers').delete().eq('id', marker.id)
+    if (error) {
+      // Rollback: restore the marker so it stays in sync with DB
+      console.error('[ErrorMarkerLayer] delete failed — rolling back:', error.message)
+      addMarker(marker)
+    }
   }
 
   return (
-    // pointer-events:none on the container — badges inside have pointer-events:auto
     <div
       ref={overlayRef}
       className="absolute inset-0"
@@ -161,32 +300,42 @@ export function ErrorMarkerLayer({ essayId, pageNumber, width, height }: Props) 
       {pageMarkers.map((marker) => {
         const et = getErrorType(marker.error_code, marker.competency)
         const color = getColor(marker.competency)
-        const isOpen = tooltip === marker.id
+        const isHovered = hoveredMarkerId === marker.id
         const isSel = isSelectionMarker(marker)
 
         const px = marker.x * width
         const py = marker.y * height
 
-        // Use per-line rects if available, fall back to bounding box for old markers
         const highlightRects = (marker.rects && marker.rects.length > 0)
           ? marker.rects
           : isSel
             ? [{ x: marker.x, y: marker.y, x2: marker.x2!, y2: marker.y2! }]
             : []
 
-        // Badge anchored to the end of the last highlight rect
         const lastRect = highlightRects[highlightRects.length - 1]
         const badgeLeft = isSel && lastRect ? lastRect.x2 * width + 2  : px - 14
         const badgeTop  = isSel && lastRect ? lastRect.y  * height - 14 : py - 14
 
+        // Hover handlers shared by badge and highlight rects
+        const hoverProps = {
+          onMouseEnter: () => setHoveredMarkerId(marker.id),
+          onMouseLeave: (e: React.MouseEvent) => {
+            // Only clear if not moving to another part of the same marker UI
+            const rel = e.relatedTarget as HTMLElement | null
+            if (!rel?.closest(`[data-marker-id="${marker.id}"]`)) {
+              setHoveredMarkerId(null)
+            }
+          },
+        }
+
         return (
-          <div key={marker.id}>
+          <div key={marker.id} data-marker-id={marker.id}>
             {/* Per-line selection highlights */}
             {highlightRects.map((r, ri) => (
               <div
                 key={ri}
                 data-marker-badge="true"
-                onClick={(e) => { e.stopPropagation(); setTooltip(isOpen ? null : marker.id) }}
+                {...hoverProps}
                 style={{
                   position: 'absolute',
                   left:   r.x  * width,
@@ -206,7 +355,7 @@ export function ErrorMarkerLayer({ essayId, pageNumber, width, height }: Props) 
             {/* Badge */}
             <div
               data-marker-badge="true"
-              onClick={(e) => { e.stopPropagation(); setTooltip(isOpen ? null : marker.id) }}
+              {...hoverProps}
               title={et?.label}
               style={{
                 position: 'absolute',
@@ -224,11 +373,13 @@ export function ErrorMarkerLayer({ essayId, pageNumber, width, height }: Props) 
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+                boxShadow: isHovered ? `0 2px 10px ${color}88` : '0 2px 6px rgba(0,0,0,0.25)',
                 pointerEvents: 'auto',
                 userSelect: 'none',
                 zIndex: 22,
                 whiteSpace: 'nowrap',
+                transition: 'box-shadow 0.15s',
+                transform: isHovered ? 'scale(1.1)' : 'scale(1)',
               }}
             >
               {marker.error_code}
@@ -248,11 +399,13 @@ export function ErrorMarkerLayer({ essayId, pageNumber, width, height }: Props) 
               }} />
             )}
 
-            {/* Tooltip */}
-            {isOpen && (
+            {/* Hover Tooltip */}
+            {isHovered && (
               <div
                 data-marker-badge="true"
-                onClick={(e) => e.stopPropagation()}
+                data-marker-id={marker.id}
+                onMouseEnter={() => setHoveredMarkerId(marker.id)}
+                onMouseLeave={() => setHoveredMarkerId(null)}
                 style={{
                   position: 'absolute',
                   left: Math.min(badgeLeft + 4, width - 215),
@@ -281,9 +434,9 @@ export function ErrorMarkerLayer({ essayId, pageNumber, width, height }: Props) 
                     maxHeight: 64,
                     overflow: 'hidden',
                   }}>
-                    "{marker.selected_text.length > 90
+                    &quot;{marker.selected_text.length > 90
                       ? marker.selected_text.slice(0, 90) + '…'
-                      : marker.selected_text}"
+                      : marker.selected_text}&quot;
                   </div>
                 )}
 
@@ -297,24 +450,54 @@ export function ErrorMarkerLayer({ essayId, pageNumber, width, height }: Props) 
                   <span style={{ fontSize: 12, fontWeight: 600, color: '#1f2937' }}>{et?.label}</span>
                 </div>
                 <p style={{ fontSize: 11, color: '#6b7280', marginBottom: 6 }}>{et?.description}</p>
-                <p style={{ fontSize: 11, color: '#ef4444', fontWeight: 600, marginBottom: 8 }}>
+
+                {/* Teacher note */}
+                {marker.note && (
+                  <div style={{
+                    background: '#f0fdf4',
+                    border: '1px solid #bbf7d0',
+                    borderRadius: 6,
+                    padding: '5px 8px',
+                    fontSize: 11,
+                    color: '#15803d',
+                    marginBottom: 6,
+                    lineHeight: 1.4,
+                  }}>
+                    💬 {marker.note}
+                  </div>
+                )}
+
+                <p style={{ fontSize: 11, color: '#ef4444', fontWeight: 600, marginBottom: readOnly ? 0 : 8 }}>
                   -{et?.deduction} pts · Competência {marker.competency}
                 </p>
-                <button
-                  onClick={(e) => handleDelete(marker, e)}
-                  style={{
-                    width: '100%', padding: '4px 0', fontSize: 11,
-                    color: '#ef4444', border: '1px solid #fecaca',
-                    borderRadius: 8, background: 'white', cursor: 'pointer',
-                  }}
-                >
-                  Remover
-                </button>
+                {!readOnly && (
+                  <button
+                    onClick={(e) => handleDelete(marker, e)}
+                    style={{
+                      width: '100%', padding: '4px 0', fontSize: 11,
+                      color: '#ef4444', border: '1px solid #fecaca',
+                      borderRadius: 8, background: 'white', cursor: 'pointer',
+                    }}
+                  >
+                    Remover
+                  </button>
+                )}
               </div>
             )}
           </div>
         )
       })}
+
+      {/* Note input popover after placing a marker */}
+      {pendingNote && (
+        <NotePopover
+          x={pendingNote.badgeLeft}
+          y={pendingNote.badgeTop}
+          containerWidth={width}
+          onConfirm={handleNoteConfirm}
+          onDismiss={handleNoteDismiss}
+        />
+      )}
     </div>
   )
 }

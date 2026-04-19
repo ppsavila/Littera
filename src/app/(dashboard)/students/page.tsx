@@ -1,17 +1,24 @@
 import { createClient } from '@/lib/supabase/server'
-import { Users } from 'lucide-react'
+import { Users, LineChart } from 'lucide-react'
+import Link from 'next/link'
+import { StudentInsightsButton } from '@/components/students/StudentInsightsButton'
+import { canUseFeature } from '@/lib/subscriptions/access'
 
 export default async function StudentsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: students } = await supabase
-    .from('students')
-    .select('*, essays(count)')
-    .eq('teacher_id', user.id)
-    .order('name')
+  const [studentsResult, canStudentInsights] = await Promise.all([
+    supabase
+      .from('students')
+      .select('*, essays(count)')
+      .eq('teacher_id', user.id)
+      .order('name'),
+    canUseFeature(user!.id, 'studentInsights'),
+  ])
 
+  const students = studentsResult.data
   const count = students?.length ?? 0
 
   return (
@@ -98,13 +105,36 @@ export default async function StudentsPage() {
                   )}
                 </div>
 
-                {/* Essay count */}
-                <span
-                  className="text-xs font-medium tabular-nums flex-shrink-0"
-                  style={{ color: 'var(--littera-slate)' }}
-                >
-                  {essayCount} redaç{essayCount !== 1 ? 'ões' : 'ão'}
-                </span>
+                {/* Essay count + Insights */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span
+                    className="text-xs font-medium tabular-nums"
+                    style={{ color: 'var(--littera-slate)' }}
+                  >
+                    {essayCount} redaç{essayCount !== 1 ? 'ões' : 'ão'}
+                  </span>
+                  <StudentInsightsButton
+                    studentId={student.id}
+                    studentName={student.name}
+                    essayCount={essayCount}
+                    canStudentInsights={canStudentInsights}
+                  />
+                  {essayCount > 0 && (
+                    <Link
+                      href={`/dashboard/students/${student.id}/insights`}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
+                      style={{
+                        background: 'var(--littera-mist)',
+                        color: 'var(--littera-slate)',
+                        border: '1px solid var(--littera-dust)',
+                      }}
+                      title={`Ver painel de insights de ${student.name}`}
+                    >
+                      <LineChart className="w-3 h-3" />
+                      Painel
+                    </Link>
+                  )}
+                </div>
               </div>
             )
           })}
