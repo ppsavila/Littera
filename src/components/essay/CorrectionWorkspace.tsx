@@ -28,7 +28,7 @@ type MobileTab = 'document' | 'scoring'
 
 export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMarkers, canAiAnalysis }: Props) {
   const { setAnnotations, undoAndGetRemovedIds, selectAnnotation, setTool } = useAnnotationStore()
-  const { initFromEssay } = useScoringStore()
+  const { initFromEssay, isDirty } = useScoringStore()
   const { setMarkers, isErrorMode, setIsErrorMode, setSelectedErrorCode } = useErrorMarkerStore()
   const [showAnnotationSidebar, setShowAnnotationSidebar] = useState(false)
   const [showScoringPanel, setShowScoringPanel] = useState(false)
@@ -71,6 +71,16 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
       aiAnalysis: essay.ai_analysis,
     })
   }, [essay, initFromEssay])
+
+  // ── Warn before leaving with unsaved score changes ─────────────────────────
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (!isDirty) return
+      e.preventDefault()
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty])
 
   // ── Keyboard shortcuts ─────────────────────────────────────────────────────
   const handleKeyDown = useCallback(
