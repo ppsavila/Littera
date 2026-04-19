@@ -275,9 +275,16 @@ export function ErrorMarkerLayer({ essayId, pageNumber, width, height, readOnly 
 
   async function handleDelete(marker: ErrorMarker, e: React.MouseEvent) {
     e.stopPropagation()
-    await supabase.from('error_markers').delete().eq('id', marker.id)
+    // Optimistic: remove immediately for fast UI feedback
     removeMarker(marker.id)
     setHoveredMarkerId(null)
+
+    const { error } = await supabase.from('error_markers').delete().eq('id', marker.id)
+    if (error) {
+      // Rollback: restore the marker so it stays in sync with DB
+      console.error('[ErrorMarkerLayer] delete failed — rolling back:', error.message)
+      addMarker(marker)
+    }
   }
 
   return (
