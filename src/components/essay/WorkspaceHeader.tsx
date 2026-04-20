@@ -16,9 +16,10 @@ interface Props {
   isPanelOpen: boolean
 }
 
+type SaveState = 'idle' | 'saving' | 'done'
+
 export function WorkspaceHeader({ essay, onTogglePanel, isPanelOpen }: Props) {
   const { scores, notes, generalComment, markClean, isDirty, totalScore } = useScoringStore()
-  type SaveState = 'idle' | 'saving' | 'done'
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const [autoSaved, setAutoSaved] = useState(false)
   const [resultModal, setResultModal] = useState<{
