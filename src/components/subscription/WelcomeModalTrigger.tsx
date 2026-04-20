@@ -9,7 +9,7 @@ interface Props {
 }
 
 export function WelcomeModalTrigger({ onboarded, currentPlan = 'free' }: Props) {
-  const [open, setOpen] = useState(() => !onboarded)
+  const [open, setOpen] = useState(() => !onboarded && currentPlan === 'free')
 
   async function handleClose() {
     setOpen(false)

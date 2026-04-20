@@ -143,7 +143,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
                     />
                     {essayCount > 0 && (
                       <Link
-                        href={`/dashboard/students/${student.id}/insights`}
+                        href={`/students/${student.id}/insights`}
                         className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
                         style={{
                           background: 'var(--littera-mist)',
@@ -171,7 +171,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
               {/* Anterior */}
               {page > 1 ? (
                 <Link
-                  href={`/dashboard/students?page=${page - 1}`}
+                  href={`/students?page=${page - 1}`}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all"
                   style={{
                     background: 'var(--littera-paper)',
@@ -197,7 +197,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
               {/* Próximo */}
               {page < totalPages ? (
                 <Link
-                  href={`/dashboard/students?page=${page + 1}`}
+                  href={`/students?page=${page + 1}`}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all"
                   style={{
                     background: 'var(--littera-paper)',

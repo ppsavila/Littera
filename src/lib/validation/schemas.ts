@@ -61,6 +61,20 @@ export const WhatsappSendSchema = z.object({
   message: z.string().max(2000).optional(),
 })
 
+// POST /api/subscription/webhook (Abacate.pay)
+export const AbacateWebhookSchema = z.object({
+  event: z.string(),
+  data: z.object({
+    id: z.string().optional(),
+    customer: z.object({
+      metadata: z.object({
+        userId: z.string().optional(),
+        plan: z.string().optional(),
+      }).passthrough(),
+    }).passthrough().optional(),
+  }).passthrough().optional(),
+}).passthrough()
+
 // POST /api/subscription/activate
 export const SubscriptionActivateSchema = z.object({
   plan: z.enum(['plus', 'premium']),

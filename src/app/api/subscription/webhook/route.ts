@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import type { Plan } from '@/lib/subscriptions/plans'
 import { createHmac, timingSafeEqual } from 'crypto'
 import { logger } from '@/lib/logger'
+import { AbacateWebhookSchema } from '@/lib/validation/schemas'
 
 /**
  * Abacate.pay webhook endpoint.
@@ -32,17 +33,19 @@ export async function POST(request: Request) {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let body: any
+  let parsed: unknown
   try {
-    body = JSON.parse(rawBody)
+    parsed = JSON.parse(rawBody)
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  // Webhook payload: { id, event, apiVersion, devMode, data }
-  const event = body?.event as string | undefined
-  const data = body?.data
+  const result = AbacateWebhookSchema.safeParse(parsed)
+  if (!result.success) {
+    return NextResponse.json({ error: 'Invalid webhook payload' }, { status: 400 })
+  }
+
+  const { event, data } = result.data
 
   logger.info('webhook.received', { event, dataId: data?.id })
 
