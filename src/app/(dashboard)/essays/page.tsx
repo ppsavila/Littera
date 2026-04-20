@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Plus, ChevronLeft, ChevronRight, Search, X } from 'lucide-react'
+import { Plus, ChevronLeft, ChevronRight, Search, X, BookOpen, SearchX } from 'lucide-react'
 import { EssayStatusBadge } from '@/components/essay/EssayStatusBadge'
 import type { Essay } from '@/types/essay'
 
@@ -79,6 +79,8 @@ export default async function EssaysPage({ searchParams }: Props) {
     if (q) params.set('q', q)
     return `/essays?${params.toString()}`
   }
+
+  const hasActiveFilter = !!q || !!statusFilter
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
@@ -181,28 +183,52 @@ export default async function EssaysPage({ searchParams }: Props) {
 
       {/* Empty state */}
       {!essays || essays.length === 0 ? (
-        <div
-          className="text-center py-20 rounded-xl littera-fade-up delay-150"
-          style={{
-            background: 'var(--littera-paper)',
-            border: '1.5px dashed var(--littera-dust)',
-          }}
-        >
-          <p className="font-display text-5xl mb-4" style={{ color: 'var(--littera-dust)' }}>∅</p>
-          <h3 className="font-display text-lg font-semibold mb-1" style={{ color: 'var(--littera-ink)' }}>
-            {q ? 'Nenhum resultado encontrado' : statusFilter ? 'Nenhuma redação com esse filtro' : 'Nenhuma redação ainda'}
+        <div className="flex flex-col items-center justify-center px-6 py-16 littera-fade-up delay-150"
+          style={{ minHeight: 420 }}>
+
+          {/* Ícone container */}
+          <div
+            className="w-24 h-24 rounded-full flex items-center justify-center mb-6"
+            style={{ background: hasActiveFilter ? 'var(--littera-mist)' : 'var(--littera-forest-light)' }}
+          >
+            {hasActiveFilter
+              ? <SearchX className="w-11 h-11" strokeWidth={1.5} style={{ color: 'var(--littera-slate)' }} />
+              : <BookOpen className="w-11 h-11" strokeWidth={1.5} style={{ color: 'var(--littera-forest)' }} />
+            }
+          </div>
+
+          {/* Título */}
+          <h3
+            className="font-display font-bold text-xl text-center mb-2"
+            style={{ color: 'var(--littera-ink)' }}
+          >
+            {hasActiveFilter ? 'Nenhuma redação encontrada' : 'Nenhuma redação por aqui ainda'}
           </h3>
-          <p className="text-sm mb-6" style={{ color: 'var(--littera-slate)' }}>
-            {q
-              ? `Nenhuma redação corresponde a "${q}". Tente outros termos.`
-              : statusFilter
-              ? 'Tente remover o filtro ou enviar novas redações.'
-              : 'Faça o upload da primeira redação para começar a usar o Litterando'}
+
+          {/* Subtítulo */}
+          <p
+            className="text-sm text-center leading-relaxed mb-7"
+            style={{ color: 'var(--littera-slate)', maxWidth: 320 }}
+          >
+            {hasActiveFilter
+              ? 'Tente ajustar os filtros ou limpar a busca para ver todas as suas redações.'
+              : 'Envie sua primeira redação e comece a receber feedback detalhado por competência do ENEM.'
+            }
           </p>
-          {!statusFilter && !q && (
-            <Link href="/essays/new" className="littera-btn littera-btn-primary px-5 py-2.5 text-sm">
+
+          {/* CTA */}
+          {hasActiveFilter ? (
+            <Link
+              href={q ? '/essays' : '/essays'}
+              className="flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-colors"
+              style={{ color: 'var(--littera-forest)', border: '1.5px solid var(--littera-forest)' }}
+            >
+              Limpar filtros
+            </Link>
+          ) : (
+            <Link href="/essays/new" className="littera-btn littera-btn-primary px-6 py-3 text-sm">
               <Plus className="w-4 h-4" />
-              Upload de Redação
+              Enviar minha primeira redação
             </Link>
           )}
         </div>
@@ -276,6 +302,12 @@ export default async function EssaysPage({ searchParams }: Props) {
                     <span style={{ color: 'var(--littera-dust)' }}>—</span>
                   )}
                 </div>
+
+                {/* Nav chevron */}
+                <ChevronRight
+                  className="w-4 h-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                  style={{ color: 'var(--littera-forest)' }}
+                />
               </Link>
             ))}
           </div>
