@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
 import { PDFRenderer } from './PDFRenderer'
 import { ImageRenderer } from './ImageRenderer'
 import { TextRenderer } from './TextRenderer'
@@ -17,16 +18,16 @@ interface Props {
 
 /** Lightbox to view the original handwritten image — rendered via portal so it's above everything */
 function OriginalImageModal({ storagePath, onClose }: { storagePath: string; onClose: () => void }) {
-  const [imageUrl, setImageUrl] = useState<string | null>(null)
-
-  useEffect(() => {
-    async function load() {
+  const { data: imageUrl } = useQuery({
+    queryKey: ['essay-signed-url', storagePath],
+    queryFn: async () => {
       const supabase = createClient()
       const { data } = await supabase.storage.from('essays').createSignedUrl(storagePath, 3600)
-      if (data?.signedUrl) setImageUrl(data.signedUrl)
-    }
-    load()
-  }, [storagePath])
+      return data?.signedUrl ?? null
+    },
+    staleTime: 55 * 60 * 1000, // URL válida por 1h; refetch com 5 min de antecedência
+    retry: 1,
+  })
 
   return createPortal(
     <div
