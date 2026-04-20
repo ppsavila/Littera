@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, List, BarChart2, CheckCircle, Loader2, Share2 } from 'lucide-react'
+import { ArrowLeft, PanelRight, CheckCircle, Loader2, Share2 } from 'lucide-react'
 import { CorrectionResultModal } from './CorrectionResultModal'
 import { useScoringStore } from '@/stores/scoringStore'
 import { createClient } from '@/lib/supabase/client'
@@ -12,13 +12,11 @@ import type { Essay } from '@/types/essay'
 
 interface Props {
   essay: Essay
-  onToggleAnnotations: () => void
-  showAnnotations: boolean
-  onToggleScoring: () => void
-  showScoring: boolean
+  onTogglePanel: () => void
+  isPanelOpen: boolean
 }
 
-export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, onToggleScoring, showScoring }: Props) {
+export function WorkspaceHeader({ essay, onTogglePanel, isPanelOpen }: Props) {
   const { scores, notes, generalComment, markClean, isDirty, totalScore } = useScoringStore()
   const [saving, setSaving] = useState(false)
   const [autoSaved, setAutoSaved] = useState(false)
@@ -169,34 +167,20 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
 
         {/* Actions */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          {/* Annotations toggle */}
+          {/* Panel toggle */}
           <button
-            data-tour="annotations-btn"
-            onClick={onToggleAnnotations}
+            data-tour="panel-btn"
+            onClick={onTogglePanel}
+            aria-expanded={isPanelOpen}
             className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
             style={
-              showAnnotations
+              isPanelOpen
                 ? { background: 'var(--littera-forest-light)', color: 'var(--littera-forest)', border: '1px solid rgba(75,0,130,0.25)' }
                 : { background: 'var(--littera-mist)', color: 'var(--littera-slate)', border: '1px solid var(--littera-dust)' }
             }
           >
-            <List className="w-3.5 h-3.5" />
-            Anotações
-          </button>
-
-          {/* Scoring toggle */}
-          <button
-            data-tour="scoring-btn"
-            onClick={onToggleScoring}
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
-            style={
-              showScoring
-                ? { background: 'var(--littera-forest-light)', color: 'var(--littera-forest)', border: '1px solid rgba(75,0,130,0.25)' }
-                : { background: 'var(--littera-mist)', color: 'var(--littera-slate)', border: '1px solid var(--littera-dust)' }
-            }
-          >
-            <BarChart2 className="w-3.5 h-3.5" />
-            Notas
+            <PanelRight className="w-3.5 h-3.5" />
+            Painel
           </button>
 
           {/* Share link */}

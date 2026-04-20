@@ -28,10 +28,13 @@ type MobileTab = 'document' | 'scoring'
 
 export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMarkers, canAiAnalysis }: Props) {
   const { setAnnotations, undoAndGetRemovedIds, selectAnnotation, setTool } = useAnnotationStore()
-  const { initFromEssay, isDirty } = useScoringStore()
+  const { initFromEssay, isDirty, scores } = useScoringStore()
   const { setMarkers, isErrorMode, setIsErrorMode, setSelectedErrorCode } = useErrorMarkerStore()
-  const [showAnnotationSidebar, setShowAnnotationSidebar] = useState(false)
-  const [showScoringPanel, setShowScoringPanel] = useState(false)
+  const [isPanelOpen, setIsPanelOpen] = useState(false)
+  const [activeDrawerTab, setActiveDrawerTab] = useState<'annotations' | 'notes'>(() => {
+    if (typeof window === 'undefined') return 'annotations'
+    return (localStorage.getItem('littera_drawer_tab') as 'annotations' | 'notes') ?? 'annotations'
+  })
   const [mobileTab, setMobileTab] = useState<MobileTab>('document')
 
   // ── Initialise stores from server-loaded data ──────────────────────────────
@@ -142,6 +145,18 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
 
+  // ── Drawer tab handler ─────────────────────────────────────────────────────
+  function handleDrawerTabChange(tab: 'annotations' | 'notes') {
+    setActiveDrawerTab(tab)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('littera_drawer_tab', tab)
+    }
+  }
+
+  // ── Badge: competências sem nota ───────────────────────────────────────────
+  const pendingScoreCount = [scores.c1, scores.c2, scores.c3, scores.c4, scores.c5]
+    .filter(s => (s ?? 0) === 0).length
+
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-full">
@@ -149,10 +164,8 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
       {/* Top bar */}
       <WorkspaceHeader
         essay={essay}
-        onToggleAnnotations={() => setShowAnnotationSidebar((v) => !v)}
-        showAnnotations={showAnnotationSidebar}
-        onToggleScoring={() => setShowScoringPanel((v) => !v)}
-        showScoring={showScoringPanel}
+        onTogglePanel={() => setIsPanelOpen((v) => !v)}
+        isPanelOpen={isPanelOpen}
       />
 
       {/* Horizontal error marker bar — visible on all screen sizes */}
@@ -171,10 +184,75 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
           <DocumentRenderer essay={essay} />
         </div>
 
-        {/* Right: annotation sidebar + scoring panel */}
-        <div className="flex flex-shrink-0">
-          {showAnnotationSidebar && <AnnotationSidebar essayId={essay.id} />}
-          {showScoringPanel && <ScoringPanel essay={essay} canAiAnalysis={canAiAnalysis} />}
+        {/* Right: tabbed drawer */}
+        <div
+          className="flex-shrink-0 overflow-hidden"
+          style={{
+            width: isPanelOpen ? 320 : 0,
+            transition: 'width 200ms cubic-bezier(0.4,0,0.2,1)',
+          }}
+        >
+          <div
+            className="flex flex-col h-full"
+            style={{
+              width: 320,
+              borderLeft: isPanelOpen ? '1px solid var(--littera-dust)' : 'none',
+              background: 'var(--littera-paper)',
+              transform: isPanelOpen ? 'translateX(0)' : 'translateX(100%)',
+              opacity: isPanelOpen ? 1 : 0,
+              transition: 'transform 200ms cubic-bezier(0.4,0,0.2,1), opacity 150ms ease',
+            }}
+          >
+            {/* Drawer tab bar */}
+            <div
+              className="flex items-center flex-shrink-0 px-3 gap-1"
+              style={{ height: 48, borderBottom: '1px solid var(--littera-dust)' }}
+              role="tablist"
+              aria-label="Painéis de trabalho"
+            >
+              {(['annotations', 'notes'] as const).map((tab) => {
+                const isActive = activeDrawerTab === tab
+                const label = tab === 'annotations' ? 'Anotações' : 'Notas'
+                return (
+                  <button
+                    key={tab}
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => handleDrawerTabChange(tab)}
+                    className="relative px-3 py-1.5 text-sm font-semibold rounded-md transition-colors"
+                    style={{
+                      color: isActive ? 'var(--littera-forest)' : 'var(--littera-slate)',
+                    }}
+                  >
+                    {label}
+                    {/* Underline indicator */}
+                    <span
+                      className="absolute bottom-0 left-3 right-3 rounded-full"
+                      style={{
+                        height: 2,
+                        background: 'var(--littera-forest)',
+                        transform: isActive ? 'scaleX(1)' : 'scaleX(0)',
+                        transition: 'transform 200ms cubic-bezier(0.4,0,0.2,1)',
+                      }}
+                    />
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Tab content */}
+            <div className="flex-1 overflow-hidden">
+              <div
+                key={activeDrawerTab}
+                className="h-full littera-fade-in"
+              >
+                {activeDrawerTab === 'annotations'
+                  ? <AnnotationSidebar essayId={essay.id} />
+                  : <ScoringPanel essay={essay} canAiAnalysis={canAiAnalysis} />
+                }
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -209,6 +287,24 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
               >
                 <Icon className="w-3.5 h-3.5" />
                 {label}
+                {key === 'scoring' && pendingScoreCount > 0 && (
+                  <span
+                    className="inline-flex items-center justify-center text-white font-bold rounded-full"
+                    style={{
+                      minWidth: 18,
+                      height: 18,
+                      fontSize: 11,
+                      padding: '0 5px',
+                      background: 'var(--littera-slate)',
+                      lineHeight: 1,
+                      marginLeft: 4,
+                      transition: 'opacity 250ms ease, transform 250ms ease',
+                    }}
+                    aria-label={`${pendingScoreCount} competência${pendingScoreCount > 1 ? 's' : ''} sem nota`}
+                  >
+                    {pendingScoreCount}
+                  </span>
+                )}
               </button>
             )
           })}
