@@ -1,5 +1,6 @@
 'use client'
 
+import type { LucideIcon } from 'lucide-react'
 import { useScoringStore } from '@/stores/scoringStore'
 import { useErrorMarkerStore } from '@/stores/errorMarkerStore'
 import { calcDeduction, calcSuggestedScore } from '@/types/error-marker'
@@ -12,6 +13,7 @@ interface Props {
     title: string
     description: string
     color: string
+    icon: LucideIcon
   }
   score: number | null
   note: string
@@ -55,6 +57,8 @@ export function CompetencyCard({ competency, score, note, aiSuggestion, onNoteCh
 
   const tokens = colorToLittera(competency.color)
 
+  const Icon = competency.icon
+
   return (
     <div
       className="rounded-xl p-3 space-y-2.5"
@@ -66,10 +70,10 @@ export function CompetencyCard({ competency, score, note, aiSuggestion, onNoteCh
       {/* Header */}
       <div className="flex items-center gap-2">
         <div
-          className="w-5 h-5 rounded-md flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-          style={{ background: tokens.solid }}
+          className="rounded-lg flex items-center justify-center flex-shrink-0"
+          style={{ width: 28, height: 28, background: tokens.solid }}
         >
-          {competency.number}
+          <Icon className="w-3.5 h-3.5" style={{ color: '#fff', strokeWidth: 2 }} />
         </div>
         <div className="flex-1 min-w-0">
           <p

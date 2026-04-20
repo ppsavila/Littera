@@ -161,7 +161,7 @@ export function ScoringPanel({ essay, fullWidth = false, canAiAnalysis }: Props)
 
   return (
     <div
-      className="flex flex-col overflow-hidden flex-shrink-0"
+      className="flex flex-col h-full overflow-hidden flex-shrink-0"
       style={{
         width: fullWidth ? '100%' : 320,
         background: 'var(--littera-paper)',

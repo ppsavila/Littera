@@ -5,6 +5,16 @@ import { usePathname } from 'next/navigation'
 import { FileText, Users, ChevronLeft, ChevronRight, Zap } from 'lucide-react'
 import { useState } from 'react'
 
+function LitteraMark({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-label="Litterando">
+      <path d="M20 4L9 15" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <path d="M9 15L7 20L12 18L20 4" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" strokeLinecap="round" fill="none" />
+      <path d="M4 20h8" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" opacity="0.4" />
+    </svg>
+  )
+}
+
 const navItems = [
   { href: '/essays',   label: 'Redações',  icon: FileText },
   { href: '/students', label: 'Alunos',    icon: Users    },
@@ -30,34 +40,48 @@ export function Sidebar() {
         style={{
           borderBottom: '1px solid var(--littera-dust)',
           height: 60,
-          padding: collapsed ? '0 8px' : '0 12px 0 20px',
-          justifyContent: collapsed ? 'center' : 'space-between',
         }}
       >
-        {!collapsed && (
-          <div className="flex items-center gap-3 min-w-0">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center font-display font-bold text-base flex-shrink-0"
-              style={{ background: 'var(--littera-forest)', color: '#fff' }}
-            >
-              L
-            </div>
-            <span
-              className="font-display text-lg font-semibold whitespace-nowrap"
-              style={{ color: 'var(--littera-ink)' }}
-            >
-              Litterando
+        {collapsed ? (
+          <div className="flex flex-col items-center justify-center h-full gap-1.5 w-full">
+            <span style={{ color: 'var(--littera-forest)' }}>
+              <LitteraMark size={22} />
             </span>
+            <button
+              onClick={() => setCollapsed((v) => !v)}
+              className="w-6 h-6 flex items-center justify-center rounded-md transition-colors"
+              style={{ color: 'var(--littera-slate)' }}
+              title="Expandir menu"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between w-full h-full px-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center font-display font-bold text-base flex-shrink-0"
+                style={{ background: 'var(--littera-forest)', color: '#fff' }}
+              >
+                L
+              </div>
+              <span
+                className="font-display text-lg font-semibold whitespace-nowrap"
+                style={{ color: 'var(--littera-ink)' }}
+              >
+                Litterando
+              </span>
+            </div>
+            <button
+              onClick={() => setCollapsed((v) => !v)}
+              className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors flex-shrink-0"
+              style={{ color: 'var(--littera-slate)' }}
+              title="Recolher menu"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
           </div>
         )}
-        <button
-          onClick={() => setCollapsed((v) => !v)}
-          className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors flex-shrink-0"
-          style={{ color: 'var(--littera-slate)' }}
-          title={collapsed ? 'Expandir menu' : 'Recolher menu'}
-        >
-          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
       </div>
 
       {/* Nav */}

@@ -30,10 +30,10 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
   const { setAnnotations, undoAndGetRemovedIds, selectAnnotation, setTool } = useAnnotationStore()
   const { initFromEssay, isDirty, scores } = useScoringStore()
   const { setMarkers, isErrorMode, setIsErrorMode, setSelectedErrorCode } = useErrorMarkerStore()
-  const [isPanelOpen, setIsPanelOpen] = useState(false)
+  const [isPanelOpen, setIsPanelOpen] = useState(true)
   const [activeDrawerTab, setActiveDrawerTab] = useState<'annotations' | 'notes'>(() => {
-    if (typeof window === 'undefined') return 'annotations'
-    return (localStorage.getItem('littera_drawer_tab') as 'annotations' | 'notes') ?? 'annotations'
+    if (typeof window === 'undefined') return 'notes'
+    return (localStorage.getItem('littera_drawer_tab') as 'annotations' | 'notes') ?? 'notes'
   })
   const [mobileTab, setMobileTab] = useState<MobileTab>('document')
 
