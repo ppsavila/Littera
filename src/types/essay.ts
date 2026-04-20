@@ -1,3 +1,6 @@
+import type { LucideIcon } from 'lucide-react'
+import { Type, Lightbulb, AlignLeft, Link2, Target } from 'lucide-react'
+
 export type EssayStatus = 'pending' | 'analyzing' | 'analyzed' | 'correcting' | 'done'
 export type SourceType = 'pdf' | 'image' | 'text'
 
@@ -61,40 +64,52 @@ export interface AIAnalysis {
   analyzed_at: string
 }
 
-export const COMPETENCIES = [
+export const COMPETENCIES: Array<{
+  key: 'c1' | 'c2' | 'c3' | 'c4' | 'c5'
+  number: number
+  title: string
+  description: string
+  color: string
+  icon: LucideIcon
+}> = [
   {
-    key: 'c1' as const,
+    key: 'c1',
     number: 1,
     title: 'Domínio da norma culta',
     description: 'Domínio da norma culta da língua escrita',
     color: '#3B82F6', // blue
+    icon: Type,
   },
   {
-    key: 'c2' as const,
+    key: 'c2',
     number: 2,
     title: 'Compreensão da proposta',
     description: 'Compreensão da proposta e aplicação de conceitos de diferentes áreas do conhecimento',
     color: '#10B981', // green
+    icon: Lightbulb,
   },
   {
-    key: 'c3' as const,
+    key: 'c3',
     number: 3,
     title: 'Seleção e organização',
     description: 'Seleção, relação, organização e interpretação de informações e argumentos',
     color: '#F59E0B', // amber
+    icon: AlignLeft,
   },
   {
-    key: 'c4' as const,
+    key: 'c4',
     number: 4,
     title: 'Mecanismos linguísticos',
     description: 'Conhecimento dos mecanismos linguísticos necessários para a construção da argumentação',
     color: '#8B5CF6', // purple
+    icon: Link2,
   },
   {
-    key: 'c5' as const,
+    key: 'c5',
     number: 5,
     title: 'Proposta de intervenção',
     description: 'Proposta de intervenção para o problema abordado, respeitando os direitos humanos',
     color: '#EF4444', // red
+    icon: Target,
   },
 ]
