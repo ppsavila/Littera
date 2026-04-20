@@ -18,7 +18,8 @@ interface Props {
 
 export function WorkspaceHeader({ essay, onTogglePanel, isPanelOpen }: Props) {
   const { scores, notes, generalComment, markClean, isDirty, totalScore } = useScoringStore()
-  const [saving, setSaving] = useState(false)
+  type SaveState = 'idle' | 'saving' | 'done'
+  const [saveState, setSaveState] = useState<SaveState>('idle')
   const [autoSaved, setAutoSaved] = useState(false)
   const [resultModal, setResultModal] = useState<{
     shareUrl: string
@@ -94,38 +95,43 @@ export function WorkspaceHeader({ essay, onTogglePanel, isPanelOpen }: Props) {
 
   // ── Concluir (mark as done) ──────────────────────────────────────────────────
   async function handleSave() {
-    setSaving(true)
+    setSaveState('saving')
     cancelPending()
 
     const [saveResult, shareUrl] = await Promise.all([
-      supabase
-        .from('essays')
-        .update({
-          score_c1: scores.c1,
-          score_c2: scores.c2,
-          score_c3: scores.c3,
-          score_c4: scores.c4,
-          score_c5: scores.c5,
-          notes_c1: notes.c1 || null,
-          notes_c2: notes.c2 || null,
-          notes_c3: notes.c3 || null,
-          notes_c4: notes.c4 || null,
-          notes_c5: notes.c5 || null,
-          general_comment: generalComment || null,
-          status: 'done',
-        })
-        .eq('id', essay.id),
+      supabase.from('essays').update({
+        score_c1: scores.c1, score_c2: scores.c2, score_c3: scores.c3,
+        score_c4: scores.c4, score_c5: scores.c5,
+        notes_c1: notes.c1 || null, notes_c2: notes.c2 || null,
+        notes_c3: notes.c3 || null, notes_c4: notes.c4 || null,
+        notes_c5: notes.c5 || null,
+        general_comment: generalComment || null,
+        status: 'done',
+      }).eq('id', essay.id),
       enableShare(),
     ])
 
-    setSaving(false)
-
     if (!saveResult.error) {
       markClean()
+      setSaveState('done')
       posthog?.capture('essay_completed', { total_score: totalScore() })
-      setResultModal({ shareUrl: shareUrl ?? '', totalScore: totalScore() })
+      setTimeout(() => {
+        setResultModal({ shareUrl: shareUrl ?? '', totalScore: totalScore() })
+        setSaveState('idle')
+      }, 800)
+    } else {
+      setSaveState('idle')
     }
   }
+
+  // ── Competency progress dots data ────────────────────────────────────────────
+  const COMPETENCY_DOTS = [
+    { key: 'c1' as const, color: '#3B82F6', label: 'Domínio da norma culta' },
+    { key: 'c2' as const, color: '#10B981', label: 'Compreensão da proposta' },
+    { key: 'c3' as const, color: '#F59E0B', label: 'Seleção e organização' },
+    { key: 'c4' as const, color: '#8B5CF6', label: 'Mecanismos linguísticos' },
+    { key: 'c5' as const, color: '#EF4444', label: 'Proposta de intervenção' },
+  ]
 
   return (
     <>
@@ -163,6 +169,30 @@ export function WorkspaceHeader({ essay, onTogglePanel, isPanelOpen }: Props) {
               {essay.theme}
             </p>
           )}
+        </div>
+
+        {/* Competency progress dots — desktop only */}
+        <div className="hidden sm:flex items-center gap-1 flex-shrink-0">
+          {COMPETENCY_DOTS.map(({ key, color, label }) => {
+            const score = scores[key]
+            const scored = (score ?? 0) > 0
+            return (
+              <div
+                key={key}
+                title={`${label} — ${scored ? `${score} pts` : 'Pendente'}`}
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: '50%',
+                  background: scored ? color : 'transparent',
+                  border: scored ? 'none' : `1.5px solid ${color}`,
+                  opacity: scored ? 1 : 0.4,
+                  transition: 'background 300ms ease, opacity 300ms ease',
+                  flexShrink: 0,
+                }}
+              />
+            )
+          })}
         </div>
 
         {/* Actions */}
@@ -210,22 +240,23 @@ export function WorkspaceHeader({ essay, onTogglePanel, isPanelOpen }: Props) {
           <button
             data-tour="save-btn"
             onClick={handleSave}
-            disabled={saving || !isDirty}
+            disabled={saveState === 'saving' || saveState === 'done' || !isDirty}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
             style={{
-              background: isDirty ? 'var(--littera-forest)' : 'var(--littera-forest-light)',
-              color: isDirty ? '#fff' : 'var(--littera-forest)',
+              background: saveState === 'done'
+                ? '#10B981'
+                : isDirty ? 'var(--littera-forest)' : 'var(--littera-forest-light)',
+              color: (saveState === 'done' || isDirty) ? '#fff' : 'var(--littera-forest)',
               border: '1px solid transparent',
-              opacity: saving || !isDirty ? (saving ? 1 : 0.7) : 1,
-              cursor: saving || !isDirty ? 'not-allowed' : 'pointer',
+              opacity: (saveState === 'saving' || (!isDirty && saveState === 'idle')) ? 0.7 : 1,
+              cursor: (saveState === 'saving' || saveState === 'done' || !isDirty) ? 'not-allowed' : 'pointer',
+              transition: 'background 300ms ease, color 200ms ease',
             }}
           >
-            {saving ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <CheckCircle className="w-3.5 h-3.5" />
-            )}
-            {saving ? 'Salvando...' : isDirty ? 'Concluir' : 'Concluído'}
+            {saveState === 'saving' && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            {saveState === 'done'   && <CheckCircle className="w-3.5 h-3.5" style={{ animation: 'littera-pop 250ms cubic-bezier(0.34,1.56,0.64,1) both' }} />}
+            {saveState === 'idle'   && <CheckCircle className="w-3.5 h-3.5" />}
+            {saveState === 'saving' ? 'Salvando...' : saveState === 'done' ? 'Concluído!' : isDirty ? 'Concluir' : 'Concluído'}
           </button>
         </div>
       </header>
