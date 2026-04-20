@@ -17,7 +17,7 @@ type ScoreTier = {
 }
 
 function getScoreTier(score: number): ScoreTier {
-  if (score >= 900) return { label: 'Excelente',           arcColor: '#4B1982', pillBg: '#EDE9FE', pillColor: '#4B1982' }
+  if (score >= 900) return { label: 'Excelente',           arcColor: '#FBBF24', pillBg: '#FEF3C7', pillColor: '#92400E' }
   if (score >= 700) return { label: 'Bom trabalho',        arcColor: '#0D9488', pillBg: '#F0FDFA', pillColor: '#0D9488' }
   if (score >= 400) return { label: 'Em desenvolvimento',  arcColor: '#C9860A', pillBg: '#FEF3DC', pillColor: '#C9860A' }
   return               { label: 'Atenção',                arcColor: '#E11D48', pillBg: '#FFF1F2', pillColor: '#E11D48' }
