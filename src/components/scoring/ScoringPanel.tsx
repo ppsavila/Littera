@@ -176,7 +176,7 @@ export function ScoringPanel({ essay, fullWidth = false, canAiAnalysis }: Props)
           borderBottom: '1px solid rgba(255,255,255,0.10)',
         }}
       >
-        <ScoreGauge total={totalScore()} />
+        <ScoreGauge score={totalScore()} status={essay.status} />
 
         {/* Save button */}
         <button
