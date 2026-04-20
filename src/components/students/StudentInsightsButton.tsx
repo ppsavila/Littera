@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Sparkles, X, TrendingUp, TrendingDown, Minus, BarChart2, AlertCircle, Loader2 } from 'lucide-react'
 import { UpgradeModal } from '@/components/subscription/UpgradeModal'
 import { FeatureLockBadge } from '@/components/subscription/FeatureLockBadge'
@@ -36,10 +37,36 @@ const TREND_LABEL = {
 
 export function StudentInsightsButton({ studentId, studentName, essayCount, canStudentInsights }: Props) {
   const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [analysis, setAnalysis] = useState<StudentProgressAnalysis | null>(null)
-  const [error, setError] = useState<string | null>(null)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+
+  const {
+    data: analysis,
+    isFetching: loading,
+    error: queryError,
+    refetch,
+  } = useQuery<StudentProgressAnalysis>({
+    queryKey: ['student-analysis', studentId],
+    queryFn: async () => {
+      const res = await fetch('/api/ai/student-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        if (res.status === 403) throw Object.assign(new Error('upgrade'), { status: 403 })
+        throw new Error(data.error ?? 'Erro ao gerar análise.')
+      }
+      return data.analysis as StudentProgressAnalysis
+    },
+    enabled: false,   // só busca quando handleClick chamar refetch()
+    staleTime: 5 * 60 * 1000, // mantém o resultado por 5 min sem re-fetch
+    retry: false,
+  })
+
+  const error = queryError instanceof Error
+    ? queryError.message === 'upgrade' ? null : queryError.message
+    : null
 
   async function handleClick() {
     if (canStudentInsights === false) {
@@ -48,30 +75,11 @@ export function StudentInsightsButton({ studentId, studentName, essayCount, canS
     }
     if (essayCount < 2) return
     setOpen(true)
-    if (analysis) return // already loaded
+    if (analysis) return // resultado já em cache
 
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/ai/student-analysis', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentId }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        if (res.status === 403) {
-          setShowUpgradeModal(true)
-          return
-        }
-        setError(data.error ?? 'Erro ao gerar análise.')
-      } else {
-        setAnalysis(data.analysis)
-      }
-    } catch {
-      setError('Erro de conexão. Tente novamente.')
-    } finally {
-      setLoading(false)
+    const result = await refetch()
+    if (result.error instanceof Error && result.error.message === 'upgrade') {
+      setShowUpgradeModal(true)
     }
   }
 
