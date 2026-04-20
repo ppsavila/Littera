@@ -298,6 +298,11 @@ a:focus-visible,
   100% { background-position: 200% center; }
 }
 
+@keyframes littera-pop {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
 .littera-fade-up  { animation: littera-fade-up  0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .littera-fade-in  { animation: littera-fade-in  0.4s ease both; }
 .littera-scale-in { animation: littera-scale-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
