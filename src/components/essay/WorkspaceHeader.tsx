@@ -1,12 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, List, BarChart2, CheckCircle, Loader2, MessageCircle, Share2, Send } from 'lucide-react'
+import { ArrowLeft, List, BarChart2, CheckCircle, Loader2, Share2 } from 'lucide-react'
 import { CorrectionResultModal } from './CorrectionResultModal'
 import { useScoringStore } from '@/stores/scoringStore'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect, useRef } from 'react'
 import { usePostHog } from 'posthog-js/react'
+import { useAutoSave } from '@/hooks/useAutoSave'
 import type { Essay } from '@/types/essay'
 
 interface Props {
@@ -15,11 +16,9 @@ interface Props {
   showAnnotations: boolean
   onToggleScoring: () => void
   showScoring: boolean
-  /** Whether the current user has the Premium whatsapp feature enabled */
-  canWhatsapp?: boolean
 }
 
-export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, onToggleScoring, showScoring, canWhatsapp = false }: Props) {
+export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, onToggleScoring, showScoring }: Props) {
   const { scores, notes, generalComment, markClean, isDirty, totalScore } = useScoringStore()
   const [saving, setSaving] = useState(false)
   const [autoSaved, setAutoSaved] = useState(false)
@@ -27,80 +26,34 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
     shareUrl: string
     totalScore: number
   } | null>(null)
-  /** State for the Premium "Enviar por WhatsApp" button */
-  const [whatsappState, setWhatsappState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const cachedShareUrl = useRef<string | null>(null)
   const supabase = createClient()
   const posthog = usePostHog()
+
+  // ── Enable sharing — cached after first call (API is idempotent) ─────────────
+  async function enableShare(): Promise<string | null> {
+    if (cachedShareUrl.current) return cachedShareUrl.current
+    try {
+      const res = await fetch(`/api/essays/${essay.id}/share`, { method: 'POST' })
+      if (!res.ok) return null
+      const data = await res.json()
+      cachedShareUrl.current = data.shareUrl ?? null
+      return cachedShareUrl.current
+    } catch {
+      return null
+    }
+  }
 
   // ── Auto-show result modal when opening a completed essay ────────────────────
   useEffect(() => {
     if (essay.status !== 'done') return
     const score = (essay.score_c1 ?? 0) + (essay.score_c2 ?? 0) + (essay.score_c3 ?? 0) +
                   (essay.score_c4 ?? 0) + (essay.score_c5 ?? 0)
-    // Always call the share API — it's idempotent and ensures is_shared = true in the DB
     enableShare().then((shareUrl) => {
       if (shareUrl) setResultModal({ shareUrl, totalScore: score })
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // only on mount
-
-  // ── Enable sharing and return share URL ─────────────────────────────────────
-  async function enableShare(): Promise<string | null> {
-    try {
-      const res = await fetch(`/api/essays/${essay.id}/share`, { method: 'POST' })
-      if (!res.ok) return null
-      const data = await res.json()
-      return data.shareUrl ?? null
-    } catch {
-      return null
-    }
-  }
-
-  // ── WhatsApp share (all tiers) ───────────────────────────────────────────────
-  async function handleWhatsApp() {
-    const shareUrl = await enableShare()
-    const lines = [
-      `📝 *Correção: ${essay.title}*`,
-      essay.theme ? `Tema: ${essay.theme}` : '',
-      '',
-      shareUrl
-        ? `🔗 Veja a correção completa:\n${shareUrl}`
-        : `Nota final: ${totalScore()}/1000`,
-    ].filter((l) => l !== '')
-    window.open(`https://wa.me/?text=${encodeURIComponent(lines.join('\n'))}`, '_blank')
-    posthog?.capture('export_triggered', { format: 'whatsapp' })
-  }
-
-  // ── WhatsApp send via API (Premium) ──────────────────────────────────────────
-  async function handleWhatsAppSend() {
-    if (whatsappState === 'loading') return
-    setWhatsappState('loading')
-    try {
-      const res = await fetch('/api/whatsapp/send-result', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ essayId: essay.id }),
-      })
-
-      if (res.ok) {
-        setWhatsappState('success')
-        posthog?.capture('whatsapp_result_sent', { essay_id: essay.id })
-        setTimeout(() => setWhatsappState('idle'), 4000)
-      } else {
-        const body = await res.json().catch(() => ({}))
-        const msg = (body as { error?: string }).error ?? 'Erro ao enviar.'
-        setWhatsappState('error')
-        console.error('[WhatsApp send-result]', res.status, msg)
-        setTimeout(() => setWhatsappState('idle'), 5000)
-      }
-    } catch (err) {
-      console.error('[WhatsApp send-result] network error', err)
-      setWhatsappState('error')
-      setTimeout(() => setWhatsappState('idle'), 5000)
-    }
-  }
-
 
   // ── Manual share button ──────────────────────────────────────────────────────
   async function handleShare() {
@@ -111,11 +64,11 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
   }
 
   // ── Autosave 3 s after any change ───────────────────────────────────────────
-  useEffect(() => {
-    if (!isDirty) return
-
-    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
-    autoSaveTimer.current = setTimeout(async () => {
+  const { cancelPending } = useAutoSave({
+    isDirty,
+    deps: [scores, notes, generalComment],
+    delayMs: 3000,
+    onSave: async () => {
       const updatePayload: Record<string, unknown> = {
         score_c1: scores.c1,
         score_c2: scores.c2,
@@ -132,29 +85,19 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
       if (essay.status === 'pending' || essay.status === 'analyzed') {
         updatePayload.status = 'correcting'
       }
-
-      const { error } = await supabase
-        .from('essays')
-        .update(updatePayload)
-        .eq('id', essay.id)
-
+      const { error } = await supabase.from('essays').update(updatePayload).eq('id', essay.id)
       if (!error) {
         markClean()
         setAutoSaved(true)
         setTimeout(() => setAutoSaved(false), 2500)
       }
-    }, 3000)
-
-    return () => {
-      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDirty, scores, notes, generalComment])
+    },
+  })
 
   // ── Concluir (mark as done) ──────────────────────────────────────────────────
   async function handleSave() {
     setSaving(true)
-    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
+    cancelPending()
 
     const [saveResult, shareUrl] = await Promise.all([
       supabase
@@ -255,55 +198,6 @@ export function WorkspaceHeader({ essay, onToggleAnnotations, showAnnotations, o
             <BarChart2 className="w-3.5 h-3.5" />
             Notas
           </button>
-
-          {/* WhatsApp — free for all tiers */}
-          <button
-            onClick={handleWhatsApp}
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
-            style={{
-              background: '#f0fdf4',
-              color: '#16a34a',
-              border: '1px solid #bbf7d0',
-            }}
-            title="Compartilhar correção pelo WhatsApp"
-          >
-            <MessageCircle className="w-3.5 h-3.5" />
-            WhatsApp
-          </button>
-
-          {/* WhatsApp send-result — Premium only */}
-          {canWhatsapp && (
-            <button
-              onClick={handleWhatsAppSend}
-              disabled={whatsappState === 'loading' || whatsappState === 'success'}
-              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
-              style={
-                whatsappState === 'success'
-                  ? { background: '#dcfce7', color: '#15803d', border: '1px solid #86efac' }
-                  : whatsappState === 'error'
-                  ? { background: '#fee2e2', color: '#b91c1c', border: '1px solid #fca5a5' }
-                  : {
-                      background: '#f0fdf4',
-                      color: '#15803d',
-                      border: '1px solid #4ade80',
-                      opacity: whatsappState === 'loading' ? 0.7 : 1,
-                      cursor: whatsappState === 'loading' ? 'not-allowed' : 'pointer',
-                    }
-              }
-              title="Enviar resultado ao aluno via WhatsApp (Premium)"
-            >
-              {whatsappState === 'loading' ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Send className="w-3.5 h-3.5" />
-              )}
-              {whatsappState === 'loading' && 'Enviando...'}
-              {whatsappState === 'success' && 'Enviado!'}
-              {whatsappState === 'error' && 'Erro no envio'}
-              {whatsappState === 'idle' && 'Enviar ao aluno'}
-            </button>
-          )}
-
 
           {/* Share link */}
           <button

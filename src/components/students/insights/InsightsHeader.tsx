@@ -17,7 +17,7 @@ export function InsightsHeader({ student, essayCount, overallAvg }: Props) {
     <div className="littera-fade-up space-y-4">
       {/* Voltar */}
       <Link
-        href="/dashboard/students"
+        href="/students"
         className="inline-flex items-center gap-1.5 text-sm font-medium transition-colors"
         style={{ color: 'var(--littera-slate)' }}
       >

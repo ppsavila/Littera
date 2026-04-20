@@ -22,12 +22,11 @@ interface Props {
   initialAnnotations: Annotation[]
   initialErrorMarkers: ErrorMarker[]
   canAiAnalysis: boolean
-  canWhatsapp?: boolean
 }
 
 type MobileTab = 'document' | 'scoring'
 
-export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMarkers, canAiAnalysis, canWhatsapp = false }: Props) {
+export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMarkers, canAiAnalysis }: Props) {
   const { setAnnotations, undoAndGetRemovedIds, selectAnnotation, setTool } = useAnnotationStore()
   const { initFromEssay, isDirty } = useScoringStore()
   const { setMarkers, isErrorMode, setIsErrorMode, setSelectedErrorCode } = useErrorMarkerStore()
@@ -154,7 +153,6 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
         showAnnotations={showAnnotationSidebar}
         onToggleScoring={() => setShowScoringPanel((v) => !v)}
         showScoring={showScoringPanel}
-        canWhatsapp={canWhatsapp}
       />
 
       {/* Horizontal error marker bar — visible on all screen sizes */}
