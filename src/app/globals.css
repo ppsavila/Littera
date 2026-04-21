@@ -307,6 +307,14 @@ a:focus-visible,
 .littera-fade-in  { animation: littera-fade-in  0.4s ease both; }
 .littera-scale-in { animation: littera-scale-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
+@keyframes littera-autosave {
+  0%   { opacity: 0; transform: translateY(3px); }
+  12%  { opacity: 1; transform: translateY(0); }
+  75%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+.littera-autosave-indicator { animation: littera-autosave 4s ease forwards; }
+
 .littera-skeleton {
   border-radius: 6px;
   background: linear-gradient(

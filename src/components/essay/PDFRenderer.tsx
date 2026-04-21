@@ -53,8 +53,8 @@ export function PDFRenderer({ essay }: Props) {
         canvas.width = viewport.width
         canvas.height = viewport.height
         const ctx = canvas.getContext('2d')!
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (page.render as any)({ canvasContext: ctx, viewport }).promise
+        // pdfjs-dist v5 RenderParameters type mismatch with CanvasRenderingContext2D
+        await (page.render({ canvasContext: ctx, viewport } as Parameters<typeof page.render>[0]) as unknown as { promise: Promise<void> }).promise
         setPageDimensions(i, { width: viewport.width, height: viewport.height })
         setPageCanvas(i, canvas)
         renderedPages.push({ canvas, width: viewport.width, height: viewport.height })

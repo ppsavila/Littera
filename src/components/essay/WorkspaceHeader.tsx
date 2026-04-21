@@ -30,6 +30,13 @@ export function WorkspaceHeader({ essay, onTogglePanel, isPanelOpen }: Props) {
   const supabase = createClient()
   const posthog = usePostHog()
 
+  // Track whether we've seen an incomplete set of scores this session,
+  // so we only auto-complete when the user fills the last score themselves.
+  const wasIncompleteRef = useRef(
+    [scores.c1, scores.c2, scores.c3, scores.c4, scores.c5].some(s => s === null)
+  )
+  const hasAutoCompletedRef = useRef(false)
+
   // ── Enable sharing — cached after first call (API is idempotent) ─────────────
   async function enableShare(): Promise<string | null> {
     if (cachedShareUrl.current) return cachedShareUrl.current
@@ -54,6 +61,19 @@ export function WorkspaceHeader({ essay, onTogglePanel, isPanelOpen }: Props) {
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // only on mount
+
+  // ── Auto-complete when professor fills the last competency score ──────────────
+  useEffect(() => {
+    const allFilled = [scores.c1, scores.c2, scores.c3, scores.c4, scores.c5].every(s => s !== null)
+    if (!allFilled) {
+      wasIncompleteRef.current = true
+      return
+    }
+    if (!wasIncompleteRef.current || hasAutoCompletedRef.current || essay.status === 'done') return
+    hasAutoCompletedRef.current = true
+    handleSave()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scores.c1, scores.c2, scores.c3, scores.c4, scores.c5])
 
   // ── Manual share button ──────────────────────────────────────────────────────
   async function handleShare() {
@@ -89,7 +109,7 @@ export function WorkspaceHeader({ essay, onTogglePanel, isPanelOpen }: Props) {
       if (!error) {
         markClean()
         setAutoSaved(true)
-        setTimeout(() => setAutoSaved(false), 2500)
+        setTimeout(() => setAutoSaved(false), 4000)
       }
     },
   })
@@ -203,11 +223,11 @@ export function WorkspaceHeader({ essay, onTogglePanel, isPanelOpen }: Props) {
             data-tour="panel-btn"
             onClick={onTogglePanel}
             aria-expanded={isPanelOpen}
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
+            className="littera-btn hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium"
             style={
               isPanelOpen
-                ? { background: 'var(--littera-forest-light)', color: 'var(--littera-forest)', border: '1px solid rgba(75,0,130,0.25)' }
-                : { background: 'var(--littera-mist)', color: 'var(--littera-slate)', border: '1px solid var(--littera-dust)' }
+                ? { background: 'var(--littera-forest-light)', color: 'var(--littera-forest)', borderColor: 'rgba(75,0,130,0.25)', boxShadow: 'none' }
+                : { background: 'var(--littera-mist)', color: 'var(--littera-slate)', borderColor: 'var(--littera-dust)', boxShadow: 'none' }
             }
           >
             <PanelRight className="w-3.5 h-3.5" />
@@ -217,12 +237,7 @@ export function WorkspaceHeader({ essay, onTogglePanel, isPanelOpen }: Props) {
           {/* Share link */}
           <button
             onClick={handleShare}
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
-            style={{
-              background: 'var(--littera-mist)',
-              color: 'var(--littera-slate)',
-              border: '1px solid var(--littera-dust)',
-            }}
+            className="littera-btn littera-btn-outline hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium"
             title="Compartilhar link da correção"
           >
             <Share2 className="w-3.5 h-3.5" />
@@ -231,7 +246,7 @@ export function WorkspaceHeader({ essay, onTogglePanel, isPanelOpen }: Props) {
 
           {/* Autosave indicator */}
           {autoSaved && !isDirty && (
-            <span className="hidden sm:flex items-center gap-1 text-xs" style={{ color: 'var(--littera-sage)' }}>
+            <span className="hidden sm:flex items-center gap-1 text-xs littera-autosave-indicator" style={{ color: 'var(--littera-sage)' }}>
               <CheckCircle className="w-3 h-3" />
               Salvo
             </span>

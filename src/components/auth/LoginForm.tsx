@@ -6,6 +6,7 @@ import { Mail, Loader2, Lock, Eye, EyeOff } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { ClayButton } from '@/components/ui/ClayButton'
 import { ClayInput } from '@/components/ui/ClayInput'
+import { isEmailFeaturesEnabled } from '@/lib/email/flags'
 
 type Mode = 'password' | 'magic' | 'signup'
 
@@ -103,6 +104,7 @@ function EmailSentCard({
 }
 
 export function LoginForm() {
+  const emailEnabled = isEmailFeaturesEnabled()
   const [mode, setMode] = useState<Mode>('password')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -122,8 +124,8 @@ export function LoginForm() {
     setLoading(true)
     setError('')
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    setLoading(false)
     if (error) {
+      setLoading(false)
       setError(
         error.message === 'Invalid login credentials'
           ? 'E-mail ou senha incorretos'
@@ -159,8 +161,10 @@ export function LoginForm() {
           ? 'Este e-mail já está cadastrado. Faça login.'
           : error.message
       )
-    } else {
+    } else if (emailEnabled) {
       setSignedUp(true)
+    } else {
+      switchMode('password')
     }
   }
 
@@ -252,7 +256,7 @@ export function LoginForm() {
 
   const loginModes: { key: Mode; label: string }[] = [
     { key: 'password', label: 'Senha' },
-    { key: 'magic',    label: 'Link mágico' },
+    ...(emailEnabled ? [{ key: 'magic' as Mode, label: 'Link mágico' }] : []),
     { key: 'signup',   label: 'Criar conta' },
   ]
 
