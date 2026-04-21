@@ -168,8 +168,8 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
         isPanelOpen={isPanelOpen}
       />
 
-      {/* Horizontal error marker bar — visible on all screen sizes */}
-      <ErrorMarkerToolbar />
+      {/* Horizontal error marker bar — hidden while essay hasn't been opened yet */}
+      {essay.status !== 'pending' && <ErrorMarkerToolbar />}
 
       {/* ── Desktop layout ── */}
       <div className="hidden sm:flex flex-1 overflow-hidden">

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Check, CheckCircle2 } from 'lucide-react'
 import { usePostHog } from 'posthog-js/react'
 import { PLANS, type Plan } from '@/lib/subscriptions/plans'
+import { isEmailFeaturesEnabled } from '@/lib/email/flags'
 import { PlanCard, ALL_FEATURES, PLAN_FEATURE_VALUES, PLAN_COLORS } from './PlanCard'
 import { CancelConfirmModal } from './CancelConfirmModal'
 import { CpfModal } from './CpfModal'
@@ -130,8 +131,8 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan, 
     : null
 
   return (
-    <div className="space-y-6 littera-fade-up">
-      {justActivated && (
+    <div className="space-y-6">
+      {justActivated && isEmailFeaturesEnabled() && (
         <div
           className="rounded-xl p-4 text-sm text-center flex items-center justify-center gap-2"
           style={{
@@ -160,14 +161,14 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan, 
         </div>
       )}
 
-      <div className="text-center space-y-2">
+      <div className="text-center space-y-2 littera-fade-up">
         <h2 className="font-display text-2xl sm:text-3xl font-extrabold" style={{ color: 'var(--littera-ink)' }}>
           Corrija mais. Ensine melhor.
         </h2>
       </div>
 
       {/* Plan cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 littera-fade-up delay-100">
         {plans.map((planId) => (
           <PlanCard
             key={planId}
@@ -191,7 +192,7 @@ export function PricingClient({ currentPlan, subscriptionsEnabled, successPlan, 
 
       {/* Feature comparison table */}
       <div
-        className="rounded-xl overflow-hidden"
+        className="rounded-xl overflow-hidden littera-fade-up delay-200"
         style={{ border: '1px solid var(--littera-dust)' }}
       >
         <div
