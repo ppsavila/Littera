@@ -169,7 +169,7 @@ export function CorrectionWorkspace({ essay, initialAnnotations, initialErrorMar
       />
 
       {/* Horizontal error marker bar — hidden while essay hasn't been opened yet */}
-      {essay.status !== 'pending' && <ErrorMarkerToolbar />}
+      <ErrorMarkerToolbar/>
 
       {/* ── Desktop layout ── */}
       <div className="hidden sm:flex flex-1 overflow-hidden">
