@@ -1,17 +1,16 @@
 'use client'
 
-import type { COMPETENCIES } from '@/types/essay'
+import { COMPETENCIES } from '@/types/essay'
 
 type CompetencyKey = 'c1' | 'c2' | 'c3' | 'c4' | 'c5'
 
 interface Props {
-  competencies: typeof COMPETENCIES
   averages: Record<CompetencyKey, number | null>
 }
 
 const MAX_SCORE = 200
 
-export function CompetencyCards({ competencies, averages }: Props) {
+export function CompetencyCards({ averages }: Props) {
   return (
     <section className="littera-fade-up delay-200">
       <h2
@@ -22,7 +21,7 @@ export function CompetencyCards({ competencies, averages }: Props) {
       </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        {competencies.map((comp) => {
+        {COMPETENCIES.map((comp) => {
           const avg = averages[comp.key]
           const pct = avg !== null ? Math.min(100, Math.round((avg / MAX_SCORE) * 100)) : 0
 

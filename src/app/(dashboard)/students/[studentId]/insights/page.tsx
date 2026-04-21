@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import { COMPETENCIES } from '@/types/essay'
 import { InsightsHeader } from '@/components/students/insights/InsightsHeader'
 import { CompetencyCards } from '@/components/students/insights/CompetencyCards'
 import { EssayHistoryTable } from '@/components/students/insights/EssayHistoryTable'
@@ -99,10 +98,7 @@ export default async function StudentInsightsPage({ params }: PageProps) {
           <EvolutionChart essays={evolutionData} />
 
           {/* ── Cards de competência ────────────────────────────────── */}
-          <CompetencyCards
-            competencies={COMPETENCIES}
-            averages={competencyAverages}
-          />
+          <CompetencyCards averages={competencyAverages} />
 
           {/* ── Lista de redações ────────────────────────────────────── */}
           <EssayHistoryTable essays={essays} />
